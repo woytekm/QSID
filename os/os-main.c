@@ -20,18 +20,19 @@ void main(void)
 
  {
 
+  SYS_debug("Q-SID OS version %d.%d",QSID_OS_VERSION_MAJOR, QSID_OS_VERSION_MINOR);
   // open i2c control files for voice and aux bus
 
   if( (G_i2c_voice_bus = LIB_i2c_open(I2C_VOICE_BUS)) < 0 )  
    {
-    SYS_user_error("I2C (voice) open error!", ERROR_FATAL);
+    SYS_error("I2C (voice) open error!");
     SYS_halt();
    }
   else G_inventory_i2c_voice = 1;
 
   if( (G_i2c_aux_bus = LIB_i2c_open(I2C_AUX_BUS)) < 0 )  
    {
-    SYS_user_error("I2C (aux) open error!", ERROR_NONFATAL);
+    SYS_error("I2C (aux) open error!");
     G_inventory_i2c_aux = -1;
    }
 
@@ -40,7 +41,7 @@ void main(void)
 
  if( (G_voice_inventory = SYS_detect_voices()) == NULL )
   {
-   SYS_user_error("No voice boards detected or detect error!", ERROR_FATAL);
+   SYS_error("No voice boards detected or detect error!");
    SYS_halt();
   } 
 

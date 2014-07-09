@@ -10,13 +10,14 @@
 #include "qsid-config.h"
 #include "i2c.h"
 #include "MCP23017.h"
+#include "vars.h"
 
 
 //
 // this will hopefully autodetect voice boards and fill in G_voice_inventory struct
 //
 
-voice_info *SYS_detect_voices(void) 
+struct voice_info_t *SYS_detect_voices(void) 
  {
 
     uint8_t ioaddr = MCP23017_FIRSTADDR; 
@@ -24,10 +25,14 @@ voice_info *SYS_detect_voices(void)
     while( ioaddr <= MCP23017_LASTADDR )
      {
 
-       //set all lines of MCP23017 to output  
-       set_i2c_register(G_i2c_voice_bus, ioaddr, MCP23017_IODIR_A, 0);
-       set_i2c_register(G_i2c_voice_bus, ioaddr, MCP23017_IODIR_B, 0);
-
+       if(LIB_set_i2c_register(G_i2c_voice_bus, ioaddr, MCP23017_IODIR_A, 0))
+         SYS_debug("SYS_detect_voices: nothing at 0x%x",ioaddr);
+       else
+        {
+         SYS_debug("SYS_detect_voices: found possible MCP23017 at 0x%x",ioaddr);
+         LIB_set_i2c_register(G_i2c_voice_bus, ioaddr, MCP23017_IODIR_B, 0);
+        }
+         
        ioaddr++;
 
      }

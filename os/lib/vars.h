@@ -5,7 +5,7 @@
 //
 
 
-#define MAXERR 255
+#define MAXMSG 255
 
 
 #define ERROR_FATAL 1

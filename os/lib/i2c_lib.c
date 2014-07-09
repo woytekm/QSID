@@ -45,8 +45,9 @@ All rights reserved.
 #include <stdint.h>
 
 #include "i2c_lib.h"
+#include "vars.h"
 
-uint8_t set_i2c_register(int file,
+uint8_t LIB_set_i2c_register(int file,
                             unsigned char addr,
                             unsigned char reg,
                             unsigned char value) {
@@ -71,14 +72,12 @@ uint8_t set_i2c_register(int file,
 
     outbuf[1] = value;
 
-    if(i2c_debug)
-     printf("set_i2c_register params: addr: 0x%x, reg: 0x%x, val: 0x%x\n", addr, reg, value); 
+    //SYS_debug("set_i2c_register: addr: 0x%x, reg: 0x%x, val: 0x%x", addr, reg, value);
 
     /* Transfer the i2c packets to the kernel and verify it worked */
     packets.msgs  = messages;
     packets.nmsgs = 1;
     if(ioctl(file, I2C_RDWR, &packets) < 0) {
-        perror("Unable to send data");
         return 1;
     }
 
@@ -86,7 +85,7 @@ uint8_t set_i2c_register(int file,
 }
 
 
-uint8_t get_i2c_register(int file,
+uint8_t LIB_get_i2c_register(int file,
                             unsigned char addr,
                             unsigned char reg,
                             unsigned char *val) {
@@ -116,8 +115,7 @@ uint8_t get_i2c_register(int file,
     /* Send the request to the kernel and get the result back */
     packets.msgs      = messages;
     packets.nmsgs     = 2;
-    if(ioctl(file, I2C_RDWR, &packets) < 0) {
-        perror("Unable to send data");
+    if(ioctl(file, I2C_RDWR, &packets) < 0) { 
         return 1;
     }
     *val = inbuf;
