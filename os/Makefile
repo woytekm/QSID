@@ -8,7 +8,7 @@ MYLIBS       = libqsid-i2c.a libqsid-system.a libqsid-SID.a
 MYLIBDIRS    = -Llib -Lmidi -Lsynth -Lsystem -Lcontrol -Ldisplay
 SYSLIBS      = 
 SYSLIBDIRS   =
-LDOPTS       = -lqsid-system -lqsid-i2c 
+LDOPTS       = -lqsid-system -lqsid-i2c -lqsid-SID
 OSEXE        = qsid-os
 
 
@@ -23,6 +23,8 @@ $(OSEXE):
 libqsid-i2c.a:
 	cd lib; $(MAKE)  
 
+libqsid-SID.a:
+	cd lib; $(MAKE)
 
 libqsid-system.a:
 	cd system; $(MAKE)

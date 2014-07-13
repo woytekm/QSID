@@ -4,7 +4,7 @@
 //
 
 #include "common.h"
-#include "vars.h"
+#include "defs.h"
 
 void SYS_user_error(char *error_msg, ...)
  {

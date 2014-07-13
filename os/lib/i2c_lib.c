@@ -45,7 +45,7 @@ All rights reserved.
 #include <stdint.h>
 
 #include "i2c_lib.h"
-#include "vars.h"
+#include "defs.h"
 
 uint8_t LIB_set_i2c_register(int file,
                             unsigned char addr,
@@ -78,6 +78,7 @@ uint8_t LIB_set_i2c_register(int file,
     packets.msgs  = messages;
     packets.nmsgs = 1;
     if(ioctl(file, I2C_RDWR, &packets) < 0) {
+        SYS_debug(DEBUG_NORMAL,"I2C set failed.");
         return 1;
     }
 
@@ -88,7 +89,7 @@ uint8_t LIB_set_i2c_register(int file,
 uint8_t LIB_get_i2c_register(int file,
                             unsigned char addr,
                             unsigned char reg,
-                            unsigned char *val) {
+                            uint8_t *val) {
 
     unsigned char inbuf, outbuf;
     struct i2c_rdwr_ioctl_data packets;
@@ -116,8 +117,10 @@ uint8_t LIB_get_i2c_register(int file,
     packets.msgs      = messages;
     packets.nmsgs     = 2;
     if(ioctl(file, I2C_RDWR, &packets) < 0) { 
+        SYS_debug(DEBUG_NORMAL,"I2C get failed.");
         return 1;
     }
+
     *val = inbuf;
 
     return 0;

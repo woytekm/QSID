@@ -12,13 +12,9 @@ uint8_t G_inventory_voice_count;
 typedef struct {
   uint8_t address;
   uint8_t state;
-  struct voice_info *next;
  } voice_info_t;
 
-//
-// begin of the voice board inventory linked list
-//
+voice_info_t G_voice_inventory[8];    
+uint8_t SYS_detect_voices(void);
 
-struct voice_info_t *G_voice_inventory;
-struct voice_info_t *SYS_detect_voices(void);
 

@@ -5,9 +5,19 @@
 //
 
 #include "common.h"
-#include "vars.h"
+#include "defs.h"
 #include "qsid-config.h"
+#include "inventory.h"
 
+
+void SYS_init(void)
+ {
+
+   G_inventory_voice_count = 0;
+   G_inventory_i2c_voice = 0;
+   G_inventory_i2c_aux = 0;
+
+ }
 
 void SYS_halt(void)
  {
@@ -32,17 +42,20 @@ void SYS_error(char *error_msg, ...)
  }
 
 
-void SYS_debug(char *debug_msg, ...)
+void SYS_debug(uint8_t debug_level, char *debug_msg, ...)
  {
 
 #ifdef QSID_DEBUG
   va_list ap;
   char message_cr[MAXMSG];
 
-  snprintf(message_cr,MAXMSG,"%s\n",debug_msg);
-  va_start(ap, debug_msg);
-  vfprintf(stderr, message_cr, ap);
-  va_end(ap);
+  if(debug_level <= QSID_DEBUG_LEVEL)
+   {
+    snprintf(message_cr,MAXMSG,"%s\n",debug_msg);
+    va_start(ap, debug_msg);
+    vfprintf(stderr, message_cr, ap);
+    va_end(ap);
+   }
 #endif
    
  }
