@@ -4,6 +4,7 @@
 // MIDI definitions and variables
 //
 
+int8_t G_MIDI_fd;
 
 // array translating MIDI note to SID oscillator register value
 // (equal tempered scale - from SID reference)

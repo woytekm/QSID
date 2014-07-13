@@ -2,5 +2,6 @@
 
 MAKE     = make
 CC       = gcc
-CFLAGS   = -g -O2
+CFLAGS   = -g -O2 -DQSID_RPI
+
 
