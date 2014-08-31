@@ -143,6 +143,7 @@ int ConsolePlayer::args (int argc, const char *argv[])
     m_driver.output = OUT_SOUNDCARD;
     m_driver.file   = false;
     m_driver.sid    = EMU_RESID;
+    m_qsid_addr     = 0x20;
 
     // parse command line arguments
     while ((i < argc) && (argv[i] != NULL))
@@ -379,11 +380,20 @@ int ConsolePlayer::args (int argc, const char *argv[])
 
             // Hardware selection
 #ifdef HAVE_HARDSID_BUILDER
+
             else if (strcmp (&argv[i][1], "-hardsid") == 0)
             {
                 m_driver.sid    = EMU_HARDSID;
                 m_driver.output = OUT_NULL;
             }
+
+            else if (strncmp (&argv[i][1], "-addr", 5) == 0)
+            {
+                if (argv[i][6] != '\0')
+                  m_qsid_addr = strtol(&argv[i][6],0,16);
+                  
+            }
+
 #endif // HAVE_HARDSID_BUILDER
 
             // These are for debug

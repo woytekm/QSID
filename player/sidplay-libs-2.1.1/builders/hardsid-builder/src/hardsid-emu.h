@@ -140,7 +140,7 @@ private:
     bool           m_locked;
 
 public:
-    HardSID  (sidbuilder *builder);
+    HardSID  (sidbuilder *builder, uint8_t _qsid_addr);
     ~HardSID ();
 
     // Standard component functions

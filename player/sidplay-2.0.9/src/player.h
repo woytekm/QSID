@@ -135,6 +135,7 @@ private:
     const char*        m_outfile;
     EventContext      *m_context;
     const char*        m_filename;
+    uint8_t            m_qsid_addr;
 
     IniConfig          m_iniCfg;
     SidDatabase        m_database;

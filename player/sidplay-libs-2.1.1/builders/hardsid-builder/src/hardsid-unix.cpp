@@ -95,7 +95,7 @@ const uint HardSID::voices = HARDSID_VOICES;
 uint       HardSID::sid = 0;
 char       HardSID::credit[];
 
-HardSID::HardSID (sidbuilder *builder)
+HardSID::HardSID (sidbuilder *builder, uint8_t _qsid_addr )
 :sidemu(builder),
  Event("HardSID Delay"),
  m_handle(0),
@@ -134,7 +134,7 @@ HardSID::HardSID (sidbuilder *builder)
     }
 
     m_status = true;
-    ioaddr = 0x26;
+    ioaddr = _qsid_addr;
     reset ();
 }
 

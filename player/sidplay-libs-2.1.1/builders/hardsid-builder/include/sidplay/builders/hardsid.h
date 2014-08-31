@@ -69,7 +69,7 @@ public:
     void        flush   (void);
     void        filter  (bool enable);
 
-    uint        create  (uint sids);
+    uint        create  (uint sids, uint8_t qsid_addr);
 };
 
 #endif // _hardsid_h_

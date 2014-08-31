@@ -71,7 +71,7 @@ bool HardSIDBuilder::m_initialised = false;
 uint HardSIDBuilder::m_count = 1;
 #endif
 
-HardSIDBuilder::HardSIDBuilder (const char * const name)
+HardSIDBuilder::HardSIDBuilder (const char * const name )
 :sidbuilder (name)
 {
     strcpy (m_errorBuffer, "N/A");
@@ -101,7 +101,7 @@ HardSIDBuilder::~HardSIDBuilder (void)
 }
 
 // Create a new sid emulation.  Called by libsidplay2 only
-uint HardSIDBuilder::create (uint sids)
+uint HardSIDBuilder::create (uint sids, uint8_t qsid_addr)
 {
     uint   count;
     HardSID *sid = NULL;
@@ -117,9 +117,9 @@ uint HardSIDBuilder::create (uint sids)
     for (count = 0; count < sids; count++)
     {
 #   ifdef HAVE_EXCEPTIONS
-        sid = new(std::nothrow) HardSID(this);
+        sid = new(std::nothrow) HardSID(this, qsid_addr);
 #   else
-        sid = new HardSID(this);
+        sid = new HardSID(this, qsid_addr);
 #   endif
 
         // Memory alloc failed?
