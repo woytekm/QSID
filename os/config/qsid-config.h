@@ -11,5 +11,5 @@
 #define I2C_AUX_BUS   "/dev/i2c-0"
 
 #define QSID_DEBUG 1
-#define QSID_DEBUG_LEVEL 1
+#define QSID_DEBUG_LEVEL 3
 

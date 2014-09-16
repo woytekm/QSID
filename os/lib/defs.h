@@ -15,3 +15,7 @@
 #define DEBUG_NORMAL 2
 #define DEBUG_HIGH 3
 
+
+int G_SID_writer_rx_pipe[2];
+
+

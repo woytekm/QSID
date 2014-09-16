@@ -1,9 +1,11 @@
+include ../Makefile.inc
+
 INCLUDES= -I ../config -I ../lib -I ../midi -I ../synth
 
 all:
-	gcc detect.c -c  $(INCLUDES)
-	gcc sysmisc.c -c  $(INCLUDES)
-	gcc userio.c -c  $(INCLUDES)
+	$(CC) $(CFLAGS) detect.c -c  $(INCLUDES)
+	$(CC) $(CFLAGS) sysmisc.c -c  $(INCLUDES)
+	$(CC) $(CFLAGS) userio.c -c  $(INCLUDES)
 	ar rcs libqsid-system.a sysmisc.o userio.o detect.o
 
 clean:

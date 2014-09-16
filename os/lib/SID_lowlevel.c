@@ -34,7 +34,7 @@ int LIB_SID_via_mcp23017_write(uint8_t i2c_dev, uint8_t ic_addr, uint8_t addr, u
 
   out_addr = cslo_rsthi_mask | addr; // merge five bits of address with control lines pattern (bitwise OR)
 
-  SYS_debug(DEBUG_HIGH,"LIB_SID_via_mcp23017_write: writing [0x%x] to SID at 0x%x",data, addr);
+  SYS_debug(DEBUG_HIGH,"LIB_SID_via_mcp23017_write: writing [0x%x] to SID at 0x%x",data, ic_addr);
 
   LIB_set_i2c_register(i2c_dev, ic_addr, MCP23017_OLAT_B, out_addr);
   LIB_set_i2c_register(i2c_dev, ic_addr, MCP23017_OLAT_A, data);

@@ -5,8 +5,6 @@
 //
 
 
-typedef struct {
- _voice_t *next;
- uint8_t index;
- uint8_t state;
-} _voice_t;
+uint8_t G_playing_voices;
+
+

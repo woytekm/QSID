@@ -8,6 +8,8 @@
 #include "qsid-config.h"
 #include "inventory.h"
 #include "i2c.h"
+#include "midi.h"
+#include "SID_writer.h"
 
 
 //
@@ -49,6 +51,27 @@ void main(void)
  else
   SYS_debug(DEBUG_LOW,"Detected %d voices in this synth",G_inventory_voice_count);
 
+ SYS_debug(DEBUG_LOW,"Starting MIDI IN thread...");
+ 
+ pthread_t MIDI_thread;
+ pthread_attr_t MIDI_thread_attr;
+ pthread_attr_init(&MIDI_thread_attr);
+ pthread_attr_setdetachstate(&MIDI_thread_attr, PTHREAD_CREATE_DETACHED);
+     
+ if(pthread_create(&MIDI_thread, &MIDI_thread_attr, MIDI_IN_thread, NULL));
+
+ SYS_debug(DEBUG_LOW,"Starting SID writer thread...");
+
+ pthread_t SID_thread;
+ pthread_attr_t SID_thread_attr;
+ pthread_attr_init(&SID_thread_attr);
+ pthread_attr_setdetachstate(&SID_thread_attr, PTHREAD_CREATE_DETACHED);
+
+ if(pthread_create(&SID_thread, &SID_thread_attr, LIB_SID_tx_thread, NULL));
+
+
+ while(1)
+  { sleep(1); }
 
  }
 

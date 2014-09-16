@@ -8,16 +8,9 @@
 #include "defs.h"
 #include "qsid-config.h"
 #include "inventory.h"
+#include "voice.h"
+#include "midi.h"
 
-
-void SYS_init(void)
- {
-
-   G_inventory_voice_count = 0;
-   G_inventory_i2c_voice = 0;
-   G_inventory_i2c_aux = 0;
-
- }
 
 void SYS_halt(void)
  {
@@ -60,4 +53,20 @@ void SYS_debug(uint8_t debug_level, char *debug_msg, ...)
    
  }
 
+
+void SYS_init(void)
+ {
+
+   G_inventory_voice_count = 0;
+   G_inventory_i2c_voice = 0;
+   G_inventory_i2c_aux = 0;
+   G_playing_voices = 0;
+
+   if(pipe(G_SID_writer_rx_pipe) == -1)
+    {
+     SYS_error("cannot create SID_writer rx pipe.");
+     SYS_halt();
+    }
+
+ }
 

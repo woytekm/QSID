@@ -39,17 +39,3 @@
 #define SID_MSG_QUEUE_LEN 64
 
 
-typedef struct _SID_msg {
-	uint8_t addr;
-        uint16_t data;
-        uint8_t prio;
-       } SID_msg_t;
-
-typedef struct  _SID_msg_queue_t{
-        uint16_t rpos;
-        uint16_t wpos;
-        SID_msg_t SID_msg_pipe[SID_MSG_QUEUE_LEN];
-       } SID_msg_queue_t;
-
-SID_msg_queue_t G_SID_msg_queue;
-

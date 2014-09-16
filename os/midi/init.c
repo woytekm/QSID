@@ -1,3 +1,6 @@
+#include "common.h"
+#include "defs.h"
+
 #ifdef QSID_RPI
 
 //
@@ -37,9 +40,9 @@ int8_t MIDI_init(void)
  {
   
   #ifdef QSID_RPI
-   return RPi_MIDI_init();
+   return MIDI_RPi_MIDI_init();
   #else
-   printf("mididump: no MIDI driver compiled in!\n");
+   SYS_error("no MIDI driver compiled in.");
    return -1;
   #endif
 
