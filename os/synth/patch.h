@@ -52,6 +52,7 @@ typedef struct {
   uint8_t  filter_map;
   uint8_t  filter_mode;
   uint8_t  volume;
+  int8_t  octave_transposition;
 
 } patch_data_t;
 

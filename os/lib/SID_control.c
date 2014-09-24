@@ -2,7 +2,44 @@
 #include "defs.h"
 #include "SID_writer.h"
 #include "SID.h"
+#include "patch.h"
 
+
+void LIB_apply_demo_patch(uint8_t board_address)
+ {
+
+   SID_msg_t SID_msg;
+
+   SID_msg.SID_addr = board_address;
+
+   SID_msg.reg_addr = SID_OSC1_ATTACK; SID_msg.reg_data = 7;
+   write(G_SID_writer_rx_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+   SID_msg.reg_addr = SID_OSC1_SUSTAIN; SID_msg.reg_data = 16;
+   write(G_SID_writer_rx_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+
+   SID_msg.reg_addr = SID_OSC2_ATTACK; SID_msg.reg_data = 7;
+   write(G_SID_writer_rx_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+   SID_msg.reg_addr = SID_OSC2_SUSTAIN; SID_msg.reg_data = 16;
+   write(G_SID_writer_rx_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+
+   SID_msg.reg_addr = SID_OSC3_ATTACK; SID_msg.reg_data = 7;
+   write(G_SID_writer_rx_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+   SID_msg.reg_addr = SID_OSC3_SUSTAIN; SID_msg.reg_data = 16;
+   write(G_SID_writer_rx_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+
+
+   SID_msg.reg_addr = SID_FLT_MODE_VOL; SID_msg.reg_data = 31;
+   write(G_SID_writer_rx_pipe[1], &SID_msg, sizeof(SID_msg_t));
+  
+   G_current_patch.octave_transposition = -12;
+
+ }
 
 void LIB_SID_OSC1_note_on(uint16_t SID_osc_pitch, uint8_t board_address)
  {

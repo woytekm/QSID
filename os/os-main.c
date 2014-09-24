@@ -19,6 +19,8 @@
 void main(void)
 
  {
+  
+  int i;
 
   SYS_debug(DEBUG_LOW,"Q-SID OS version %d.%d",QSID_OS_VERSION_MAJOR, QSID_OS_VERSION_MINOR);
   // open i2c control files for voice and aux bus
@@ -69,6 +71,8 @@ void main(void)
 
  if(pthread_create(&SID_thread, &SID_thread_attr, LIB_SID_tx_thread, NULL));
 
+ for(i = 1; i <= G_inventory_voice_count; i++)
+  LIB_apply_demo_patch(G_voice_inventory[i].address);
 
  while(1)
   { sleep(1); }
