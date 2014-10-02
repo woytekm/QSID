@@ -42,9 +42,14 @@ void MIDI_IN_thread(void)
 
       if( fds.revents & POLLIN )
        {
+
          rc = read(G_MIDI_fd, midi_message_buffer, sizeof(midi_message_buffer));
+
          if (rc > 0)
           {
+
+            if(rc % 3 != 0)
+              rc += read(G_MIDI_fd, midi_message_buffer+rc, sizeof(midi_message_buffer) - rc );  
 
            SYS_debug(DEBUG_HIGH,"MIDI_in_thread: received %d bytes from MIDI IN",rc);
            MIDI_parse_one_MIDI_msg(midi_message_buffer, 0, rc);

@@ -15,7 +15,7 @@
     if(at_offset >= buflen)  // end of buffer
      return;
 
-    midi_channel = midi_in_buffer[at_offset] & 0b00001111;
+    midi_channel = (midi_in_buffer[at_offset] & 0b00001111) + 1; // channel ID in MIDI messages starts from 0
     midi_msgtype = midi_in_buffer[at_offset] & 0b11110000;
 
     switch(midi_msgtype) {
@@ -24,18 +24,18 @@
       next_message_offset = at_offset + 3;
       if(midi_in_buffer[at_offset+2] == 0) // attack velocity = 0, this is NOTE OFF
         {
-         SYS_debug(DEBUG_HIGH,"MIDI note on (off) (%x, %x)", midi_in_buffer[at_offset+1], midi_in_buffer[at_offset+2]);
+         SYS_debug(DEBUG_HIGH,"MIDI note on (off), CH%d, (%x, %x)", midi_channel, midi_in_buffer[at_offset+1], midi_in_buffer[at_offset+2]);
          SYNTH_note_off(midi_in_buffer[at_offset+1]);
          break;
         }
 
-      SYS_debug(DEBUG_HIGH,"MIDI note on (%x, %x)", midi_in_buffer[at_offset+1], midi_in_buffer[at_offset+2]);
+      SYS_debug(DEBUG_HIGH,"MIDI note on, CH%d, (%x, %x)", midi_channel, midi_in_buffer[at_offset+1], midi_in_buffer[at_offset+2]);
       SYNTH_note_on(midi_in_buffer[at_offset+1], midi_in_buffer[at_offset+2]);  // (note, attack_velocity)
       break;
 
     case 0x80:  // MIDI note off (3 bytes)
      next_message_offset = at_offset + 3;
-     SYS_debug(DEBUG_HIGH,"MIDI note off (%x)", midi_in_buffer[at_offset+1]);
+     SYS_debug(DEBUG_HIGH,"MIDI note off, CH%d, (%x)", midi_channel, midi_in_buffer[at_offset+1]);
      SYNTH_note_off(midi_in_buffer[at_offset+1]);
      break;
 

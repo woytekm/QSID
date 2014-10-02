@@ -154,7 +154,7 @@ void MIDI_dump(char *midi_msg, ssize_t msglen)
 void main()
  {
 
-   int8_t MIDI_fd,pollrc,end=0;
+   int8_t MIDI_fd,pollrc,end=0, i;
    ssize_t rc;
    char buff[1024];
    struct pollfd fds[1];
@@ -186,11 +186,21 @@ void main()
      {
       if( fds[0].revents & POLLIN )
        {
+ 
 
          rc = read(MIDI_fd, buff, sizeof(buff) );
 
+         if(rc % 3 != 0)
+          rc += read(MIDI_fd, buff+rc, sizeof(buff) );
+
          if (rc > 0)
           {
+
+           printf("received %d bytes on serial [", rc);
+           for(i = 0; i < rc; i++)
+            printf(" %X ",buff[i]);
+           printf(" ]\n");
+
            MIDI_dump(buff,rc);
            bzero(buff, rc);
           }
