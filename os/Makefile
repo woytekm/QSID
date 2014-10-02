@@ -21,10 +21,10 @@ $(OSEXE):
 
 
 libqsid-i2c.a:
-	cd lib; $(MAKE)  
+	cd lib; $(MAKE) libqsid-i2c
 
 libqsid-SID.a:
-	cd lib; $(MAKE)
+	cd lib; $(MAKE) libqsid-SID
 
 libqsid-system.a:
 	cd system; $(MAKE)

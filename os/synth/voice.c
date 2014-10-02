@@ -58,9 +58,11 @@ void SYNTH_note_off(uint16_t midi_note)
       LIB_SID_note_off(G_voice_inventory[i].address);
       // SID specific part end
 
-      break;
+      return;
      }
     
    }
+   
+   SYS_debug(DEBUG_HIGH,"SYNTH_note_off: %x: playing voice not found!", midi_note);
 
  }

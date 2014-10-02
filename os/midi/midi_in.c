@@ -9,7 +9,7 @@ void MIDI_IN_thread(void)
  {
 
    int pollrc,end=0;
-   uint8_t free_SID, midi_channel, midi_msgtype;
+   uint8_t free_SID, midi_channel, midi_msgtype, i;
    size_t rc;
    unsigned char midi_message_buffer[1024];
    struct pollfd fds;
@@ -48,10 +48,14 @@ void MIDI_IN_thread(void)
          if (rc > 0)
           {
 
+            // very crude way to put incomplete messages together. will not work for any messages which are not 3 bytes long. TODO
+
             if(rc % 3 != 0)
               rc += read(G_MIDI_fd, midi_message_buffer+rc, sizeof(midi_message_buffer) - rc );  
 
            SYS_debug(DEBUG_HIGH,"MIDI_in_thread: received %d bytes from MIDI IN",rc);
+ 
+           // this will recursively parse entire message buffer:
            MIDI_parse_one_MIDI_msg(midi_message_buffer, 0, rc);
 
            bzero(midi_message_buffer, rc);

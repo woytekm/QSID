@@ -41,7 +41,7 @@
 
    }
 
-   MIDI_parse_one_MIDI_msg(midi_in_buffer, at_offset + next_message_offset, buflen);
+   MIDI_parse_one_MIDI_msg(midi_in_buffer, next_message_offset, buflen);
 
  }
 
