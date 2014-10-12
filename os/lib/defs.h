@@ -16,6 +16,7 @@
 #define DEBUG_HIGH 3
 #define DEBUG_VERYHIGH 4
 
+#define QSID_OS_SID_REMOTE_CONTROL_PORT 6677
 
 int G_SID_writer_rx_pipe[2];
 

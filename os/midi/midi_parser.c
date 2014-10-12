@@ -30,7 +30,7 @@
         }
 
       SYS_debug(DEBUG_HIGH,"MIDI note on, CH%d, (%x, %x)", midi_channel, midi_in_buffer[at_offset+1], midi_in_buffer[at_offset+2]);
-      SYNTH_note_on(midi_in_buffer[at_offset+1], midi_in_buffer[at_offset+2]);  // (note, attack_velocity)
+      SYNTH_note_on_fast(midi_in_buffer[at_offset+1], midi_in_buffer[at_offset+2]);  // (note, attack_velocity)
       break;
 
     case 0x80:  // MIDI note off (3 bytes)

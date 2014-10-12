@@ -17,12 +17,15 @@
 #include <poll.h>
 #include <strings.h>
 #include <pthread.h>
+#include <string.h>
+#include <stdlib.h>
 
 //serial port includes
 #include <termio.h>
 #include <fcntl.h>
 #include <err.h>
 #include <linux/serial.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+
+//UDP receiver includes
+#include <sys/socket.h>
+#include <netinet/in.h>

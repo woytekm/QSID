@@ -10,6 +10,7 @@
 #include "i2c.h"
 #include "midi.h"
 #include "SID_writer.h"
+#include "SID_control.h"
 
 
 //
@@ -70,6 +71,15 @@ void main(void)
  pthread_attr_setdetachstate(&SID_thread_attr, PTHREAD_CREATE_DETACHED);
 
  if(pthread_create(&SID_thread, &SID_thread_attr, LIB_SID_tx_thread, NULL));
+
+ SYS_debug(DEBUG_LOW,"Starting SID remote control thread...");
+ pthread_t SID_remote_thread;
+ pthread_attr_t SID_remote_thread_attr;
+ pthread_attr_init(&SID_remote_thread_attr);
+ pthread_attr_setdetachstate(&SID_remote_thread_attr, PTHREAD_CREATE_DETACHED);
+
+ if(pthread_create(&SID_remote_thread, &SID_remote_thread_attr, LIB_SID_remote_control, NULL));
+
 
  for(i = 1; i <= G_inventory_voice_count; i++)
   LIB_apply_demo_patch(G_voice_inventory[i].address);

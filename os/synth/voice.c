@@ -39,6 +39,32 @@ void SYNTH_note_on(uint16_t midi_note, uint16_t attack_velocity)
     }
  }
 
+void SYNTH_note_on_fast(uint16_t midi_note, uint16_t attack_velocity)
+ {
+
+   uint8_t free_voice;
+
+   free_voice = SYNTH_get_free_voice();
+
+   if(free_voice)
+    {
+
+     SYS_debug(DEBUG_HIGH,"SYNTH_note_on_fast: allocating voice %d",free_voice);
+     G_playing_voices++;
+     G_voice_inventory[free_voice].state = G_playing_voices;  // set voice state to note age (this is currenlty most recent played note)
+     G_voice_inventory[free_voice].note = midi_note;          // assign MIDI note to voice (needed for note off)
+
+     LIB_SID_note_on(G_MIDI_to_SID_reg[midi_note+G_current_patch.octave_transposition],G_voice_inventory[free_voice].address);
+
+    }
+   else
+    {
+     SYS_debug(DEBUG_HIGH,"SYNTH_note_on_fast: no free voices to play this note (%x)!",midi_note);
+     return;
+    }
+
+ }
+
 void SYNTH_note_off(uint16_t midi_note)
  {
 

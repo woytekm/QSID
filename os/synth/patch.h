@@ -6,7 +6,7 @@
 
 #include "common.h"
 
-typedef struct {
+typedef struct _patch_data_t {
   uint8_t  osc1_on;
   uint16_t osc1_freq;
   uint8_t  osc1_detune;
