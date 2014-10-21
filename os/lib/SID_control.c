@@ -72,16 +72,23 @@ void LIB_SID_note_on(uint16_t SID_osc_pitch, uint8_t board_address)
 
    write(G_SID_writer_rx_pipe[1], &SID_OSC3_msg, sizeof(SID_msg_t));
 
-   SID_OSC1_msg.reg_data =  SID_OSC2_msg.reg_data = SID_OSC3_msg.reg_data = 17;
+   SID_OSC1_msg.reg_data = G_current_patch.osc1_control_reg | 1;  // set GATE bit
+   SID_OSC2_msg.reg_data = G_current_patch.osc2_control_reg | 1;  
+   SID_OSC3_msg.reg_data = G_current_patch.osc3_control_reg | 1;
 
    SID_OSC1_msg.reg_addr = SID_OSC1_CTRL;
    SID_OSC2_msg.reg_addr = SID_OSC2_CTRL;
    SID_OSC3_msg.reg_addr = SID_OSC3_CTRL;
+
    
    if(G_current_patch.osc1_on) 
     write(G_SID_writer_rx_pipe[1], &SID_OSC1_msg, sizeof(SID_msg_t));
+   usleep(10);
+
    if(G_current_patch.osc2_on)
     write(G_SID_writer_rx_pipe[1], &SID_OSC2_msg, sizeof(SID_msg_t));
+   usleep(10);
+
    if(G_current_patch.osc3_on)
     write(G_SID_writer_rx_pipe[1], &SID_OSC3_msg, sizeof(SID_msg_t));
 
@@ -153,15 +160,17 @@ void LIB_SID_note_off(uint8_t board_address)
 
   SID_msg_t SID_msg;
 
-  SID_msg.reg_data = 16;
   SID_msg.SID_addr = board_address;
 
+  SID_msg.reg_data = G_current_patch.osc1_control_reg;
   SID_msg.reg_addr = SID_OSC1_CTRL;
   write(G_SID_writer_rx_pipe[1], &SID_msg, sizeof(SID_msg_t));
 
+  SID_msg.reg_data = G_current_patch.osc2_control_reg;
   SID_msg.reg_addr = SID_OSC2_CTRL;
   write(G_SID_writer_rx_pipe[1], &SID_msg, sizeof(SID_msg_t));
-
+ 
+  SID_msg.reg_data = G_current_patch.osc3_control_reg;
   SID_msg.reg_addr = SID_OSC3_CTRL;
   write(G_SID_writer_rx_pipe[1], &SID_msg, sizeof(SID_msg_t));
 

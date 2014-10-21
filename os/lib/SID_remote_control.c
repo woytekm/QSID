@@ -1,14 +1,16 @@
 #include "common.h"
 #include "defs.h"
+#include "SID.h"
 #include "SID_writer.h"
 #include "inventory.h"
+#include "patch.h"
 
 void *LIB_SID_remote_control(void)
  {
 
    // UDP receiver code taken from: http://www.cs.ucsb.edu/~almeroth/classes/W01.176B/hw2/examples/udp-server.c
 
-   int sockfd,n,i;
+   int sockfd,n,i,is_virtual;
    struct sockaddr_in servaddr,cliaddr;
    socklen_t len;
    SID_msg_t SID_control_packet;
@@ -29,12 +31,66 @@ void *LIB_SID_remote_control(void)
       SYS_debug(DEBUG_HIGH,"LIB_SID_remote_control: waiting for data...");
       n = recvfrom(sockfd,&SID_control_packet,sizeof(SID_msg_t),0,(struct sockaddr *)&cliaddr,&len);
       SYS_debug(DEBUG_HIGH,"LIB_SID_remote_control: received following data: %x, %x",SID_control_packet.reg_addr, SID_control_packet.reg_data); 
- 
-      for(i = 1; i <= G_inventory_voice_count; i++)
+
+
+      if(SID_control_packet.reg_addr >= 32)
+       SYS_debug(DEBUG_HIGH,"LIB_SID_remote_control: received QSID SID virtual register change");
+
+      switch(SID_control_packet.reg_addr)
        {
-         SID_control_packet.SID_addr = G_voice_inventory[i].address;
-         write(G_SID_writer_rx_pipe[1], &SID_control_packet, sizeof(SID_msg_t));
+
+         case SID_OSC1_CTRL:
+           G_current_patch.osc1_control_reg = SID_control_packet.reg_data;
+           break;
+
+         case SID_OSC2_CTRL:
+           G_current_patch.osc2_control_reg = SID_control_packet.reg_data;
+           break;
+
+         case SID_OSC3_CTRL:
+           G_current_patch.osc3_control_reg = SID_control_packet.reg_data;
+           break;
+
+         case SID_OSC1_STATE:
+          G_current_patch.osc1_on = SID_control_packet.reg_data;
+          is_virtual = 1;
+          break;
+         
+         case SID_OSC2_STATE:
+          G_current_patch.osc2_on = SID_control_packet.reg_data;
+          is_virtual = 1;
+          break;
+
+         case SID_OSC3_STATE:
+          G_current_patch.osc3_on = SID_control_packet.reg_data;
+          is_virtual = 1;
+          break;
+
+         case SID_OSC1_DETUNE:
+          G_current_patch.osc1_detune = SID_control_packet.reg_data;
+          is_virtual = 1;
+          break;
+
+         case SID_OSC2_DETUNE:
+          G_current_patch.osc2_detune = SID_control_packet.reg_data;
+          is_virtual = 1;
+          break;
+
+         case SID_OSC3_DETUNE:
+          G_current_patch.osc3_detune = SID_control_packet.reg_data;
+          is_virtual = 1;
+          break;
+
        }
+ 
+      if(!is_virtual)
+        for(i = 1; i <= G_inventory_voice_count; i++)
+         {
+          SID_control_packet.SID_addr = G_voice_inventory[i].address;
+          write(G_SID_writer_rx_pipe[1], &SID_control_packet, sizeof(SID_msg_t));
+         }
+    
+      is_virtual = 0;
      
     }
 

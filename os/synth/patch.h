@@ -44,6 +44,9 @@ typedef struct _patch_data_t {
   uint8_t  osc1_adsr_release;
   uint8_t  osc1_filter_on;
 
+  uint8_t  osc1_control_reg;
+
+
   uint8_t  osc2_on;
   uint8_t  osc2_detune;
   uint16_t osc2_pw;
@@ -56,6 +59,9 @@ typedef struct _patch_data_t {
   uint8_t  osc2_adsr_release;
   uint8_t  osc2_filter_on;
 
+  uint8_t  osc2_control_reg;
+
+
   uint8_t  osc3_on;
   uint8_t  osc3_detune;
   uint16_t osc3_pw;
@@ -67,6 +73,8 @@ typedef struct _patch_data_t {
   uint8_t  osc3_adsr_sustain;
   uint8_t  osc3_adsr_release;
   uint8_t  osc3_filter_on;
+
+  uint8_t  osc3_control_reg;
 
 
   uint16_t filter_cutoff;

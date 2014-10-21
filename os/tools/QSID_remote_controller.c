@@ -106,20 +106,25 @@ void init_patch(patch_data_t *blank_patch)
  {
 
    blank_patch->osc1_adsr_attack = 0; //(upper 4 bits)
-   blank_patch->osc1_adsr_decay = 0; //(lower 4 bits)
+   blank_patch->osc1_adsr_decay = 15; //(lower 4 bits)
    blank_patch->osc1_adsr_sustain = 0; //(upper 4 bits)
    blank_patch->osc1_adsr_release = 0; //(lower 4 bits) 
 
    blank_patch->osc2_adsr_attack = 0; //(upper 4 bits)
-   blank_patch->osc2_adsr_decay = 0; //(lower 4 bits)
+   blank_patch->osc2_adsr_decay = 15; //(lower 4 bits)
    blank_patch->osc2_adsr_sustain = 0; //(upper 4 bits)
    blank_patch->osc2_adsr_release = 0; //(lower 4 bits)
 
    blank_patch->osc3_adsr_attack = 0; //(upper 4 bits)
-   blank_patch->osc3_adsr_decay = 0; //(lower 4 bits)
+   blank_patch->osc3_adsr_decay = 15; //(lower 4 bits)
    blank_patch->osc3_adsr_sustain = 0; //(upper 4 bits)
    blank_patch->osc3_adsr_release = 0; //(lower 4 bits)
 
+
+   blank_patch->osc1_detune = 0;
+   blank_patch->osc2_detune = 0;
+   blank_patch->osc3_detune = 0;
+   
    blank_patch->osc1_wave = WAVEFORM_TRIANGLE;
    blank_patch->osc2_wave = WAVEFORM_TRIANGLE;
    blank_patch->osc3_wave = WAVEFORM_TRIANGLE;
@@ -135,6 +140,9 @@ void init_patch(patch_data_t *blank_patch)
    blank_patch->osc1_on = 1;
    blank_patch->osc2_on = 1;
    blank_patch->osc3_on = 1; 
+
+   blank_patch->filter_cutoff = 0;
+   blank_patch->filter_reso = 0;
   
    blank_patch->filter_mode = FILTER_LOWPASS;
 
@@ -146,10 +154,11 @@ void remote_apply_patch(patch_data_t *new_patch, int sock, struct sockaddr_in *s
  {
     SID_msg_t SID_control_packet;
     uint8_t pw_lo, pw_hi, cutoff_lo, cutoff_hi, res_filt_reg, control_reg, mode_vol_reg;
+    uint16_t pw_mask = 255;
     
     control_reg = 0;
 
-    pw_lo = new_patch->osc1_pw & 255;
+    pw_lo = new_patch->osc1_pw & pw_mask;
     pw_hi = new_patch->osc1_pw >> 8; 
     
     SID_control_packet.reg_addr = SID_OSC1_PW_LO;
@@ -191,7 +200,7 @@ void remote_apply_patch(patch_data_t *new_patch, int sock, struct sockaddr_in *s
     SID_control_packet.reg_data = control_reg;
     send_to_QSID(sock, &SID_control_packet, srv_addr);
 
-    pw_lo = new_patch->osc2_pw & 255; // lowest 8 bits
+    pw_lo = new_patch->osc2_pw & pw_mask; // lowest 8 bits
     pw_hi = new_patch->osc2_pw >> 8;  // shift the rest 
 
     SID_control_packet.reg_addr = SID_OSC2_PW_LO;
@@ -233,7 +242,7 @@ void remote_apply_patch(patch_data_t *new_patch, int sock, struct sockaddr_in *s
     SID_control_packet.reg_data = control_reg;
     send_to_QSID(sock, &SID_control_packet, srv_addr);
 
-    pw_lo = new_patch->osc3_pw & 255;
+    pw_lo = new_patch->osc3_pw & pw_mask;
     pw_hi = new_patch->osc3_pw >> 8;
 
     SID_control_packet.reg_addr = SID_OSC3_PW_LO;
@@ -308,25 +317,25 @@ void remote_apply_patch(patch_data_t *new_patch, int sock, struct sockaddr_in *s
     SID_control_packet.reg_data = res_filt_reg;
     send_to_QSID(sock, &SID_control_packet, srv_addr);
 
-    mode_vol_reg = new_patch->volume << 4;
+    mode_vol_reg = new_patch->volume; //<< 4;
     
     switch(new_patch->filter_mode)
      {
      
       case FILTER_OFF:
-        mode_vol_reg = mode_vol_reg & FILTER_OFF;
+        mode_vol_reg = mode_vol_reg | FILTER_OFF;
         break;
 
       case FILTER_HIGHPASS:
-        mode_vol_reg = mode_vol_reg & FILTER_HIGHPASS;
+        mode_vol_reg = mode_vol_reg | FILTER_HIGHPASS;
         break;
 
       case FILTER_BANDPASS:
-        mode_vol_reg = mode_vol_reg & FILTER_BANDPASS;
+        mode_vol_reg = mode_vol_reg | FILTER_BANDPASS;
         break;
 
       case FILTER_LOWPASS:
-        mode_vol_reg = mode_vol_reg & FILTER_LOWPASS;
+        mode_vol_reg = mode_vol_reg | FILTER_LOWPASS;
         break;
     
      }
@@ -460,14 +469,20 @@ int main(int argc, char**argv)
    int sockfd,n;
    struct sockaddr_in servaddr,cliaddr;
    SID_msg_t SID_control_packet;
-   uint8_t i, input, cutoff_lo, cutoff_hi, res_filt_reg, mode_vol_reg;
+   uint8_t i, input, cutoff_lo, cutoff_hi, pw_lo, pw_hi, res_filt_reg, mode_vol_reg, control_reg;
    uint8_t waveforms[4] = { WAVEFORM_NOISE, WAVEFORM_PULSE, WAVEFORM_SAWTOOTH, WAVEFORM_TRIANGLE };
    uint8_t filter_modes[4] = { FILTER_OFF, FILTER_HIGHPASS, FILTER_BANDPASS, FILTER_LOWPASS };
    patch_data_t current_patch;
    uint8_t osc1_waveform_idx,  osc2_waveform_idx, osc3_waveform_idx, filter_mode_idx;
    uint16_t row, col;
+   uint16_t pw_mask = 255;
+
+   osc1_waveform_idx = osc2_waveform_idx = osc3_waveform_idx = 3; 
+
+   filter_mode_idx = 0;
 
    initscr();
+   noecho();
 
    getmaxyx(stdscr,row,col);
 
@@ -498,9 +513,9 @@ int main(int argc, char**argv)
    
    servaddr.sin_port=htons(QSID_OS_SID_REMOTE_CONTROL_PORT);
 
-   system ("/bin/stty raw -echo");
-
    init_patch(&current_patch);
+
+   remote_apply_patch(&current_patch, sockfd, &servaddr);
 
    update_control_indexes(&current_patch, &osc1_waveform_idx, &osc2_waveform_idx, &osc3_waveform_idx, &filter_mode_idx);
 
@@ -521,15 +536,283 @@ int main(int argc, char**argv)
 
       if(input == '1')
        {
+        if(current_patch.osc1_on)
+         current_patch.osc1_on = 0;
+        else
+         current_patch.osc1_on = 1;
+
+        SID_control_packet.reg_addr = SID_OSC1_STATE;
+        SID_control_packet.reg_data = current_patch.osc1_on;
+        send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+  
+       }
+
+      if(input == '2')
+       {
+        if(current_patch.osc2_on)
+         current_patch.osc2_on = 0;
+        else
+         current_patch.osc2_on = 1;
+
+        SID_control_packet.reg_addr = SID_OSC2_STATE;
+        SID_control_packet.reg_data = current_patch.osc2_on;
+        send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+ 
+       }
+
+      if(input == '3')
+       {
+        if(current_patch.osc3_on)
+         current_patch.osc3_on = 0;
+        else
+         current_patch.osc3_on = 1;
+
+        SID_control_packet.reg_addr = SID_OSC3_STATE;
+        SID_control_packet.reg_data = current_patch.osc3_on;
+        send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+ 
+       }
+
+      
+      if(input == '!')
+       {
          
+         if(osc1_waveform_idx == 3)
+          osc1_waveform_idx = 0;
+         else
+          osc1_waveform_idx++;
+
+         current_patch.osc1_wave = waveforms[osc1_waveform_idx];
+
+         control_reg = 0; 
+
+         switch(current_patch.osc1_wave)
+           {
+            case WAVEFORM_NOISE:
+             control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
+             control_reg = control_reg | WAVEFORM_NOISE;
+             break;
+
+           case WAVEFORM_PULSE:
+             control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
+             control_reg = control_reg | WAVEFORM_PULSE;
+             break;
+
+           case WAVEFORM_SAWTOOTH:
+             control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
+             control_reg = control_reg | WAVEFORM_SAWTOOTH;
+             break;
+
+          case WAVEFORM_TRIANGLE:
+            control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
+            control_reg = control_reg | WAVEFORM_TRIANGLE;
+            break;
+          }
+
+       SID_control_packet.reg_addr = SID_OSC1_CTRL;
+       SID_control_packet.reg_data = control_reg;
+       send_to_QSID(sockfd, &SID_control_packet, &servaddr); 
         
        }
 
+
+      if(input == '@')
+       {
+
+         if(osc2_waveform_idx == 3)
+          osc2_waveform_idx = 0;
+         else
+          osc2_waveform_idx++;
+
+         current_patch.osc2_wave = waveforms[osc2_waveform_idx];
+
+         control_reg = 0;
+
+         switch(current_patch.osc2_wave)
+           {
+            case WAVEFORM_NOISE:
+             control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
+             control_reg = control_reg | WAVEFORM_NOISE;
+             break;
+
+           case WAVEFORM_PULSE:
+             control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
+             control_reg = control_reg | WAVEFORM_PULSE;
+             break;
+
+           case WAVEFORM_SAWTOOTH:
+             control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
+             control_reg = control_reg | WAVEFORM_SAWTOOTH;
+             break;
+
+          case WAVEFORM_TRIANGLE:
+            control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
+            control_reg = control_reg | WAVEFORM_TRIANGLE;
+            break;
+          }
+
+       SID_control_packet.reg_addr = SID_OSC2_CTRL;
+       SID_control_packet.reg_data = control_reg;
+       send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+
+       }
+
+
+     if(input == '#')
+       {
+
+         if(osc3_waveform_idx == 3)
+          osc3_waveform_idx = 0;
+         else
+          osc3_waveform_idx++;
+
+         current_patch.osc3_wave = waveforms[osc3_waveform_idx];
+
+         control_reg = 0;
+
+         switch(current_patch.osc3_wave)
+           {
+            case WAVEFORM_NOISE:
+             control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
+             control_reg = control_reg | WAVEFORM_NOISE;
+             break;
+
+           case WAVEFORM_PULSE:
+             control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
+             control_reg = control_reg | WAVEFORM_PULSE;
+             break;
+
+           case WAVEFORM_SAWTOOTH:
+             control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
+             control_reg = control_reg | WAVEFORM_SAWTOOTH;
+             break;
+
+          case WAVEFORM_TRIANGLE:
+            control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
+            control_reg = control_reg | WAVEFORM_TRIANGLE;
+            break;
+          }
+
+       SID_control_packet.reg_addr = SID_OSC3_CTRL;
+       SID_control_packet.reg_data = control_reg;
+       send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+
+       }
+
+      if(input == 'q')
+       {
+        if(current_patch.osc1_pw > 30)
+         {
+          current_patch.osc1_pw -= 30;
+          pw_lo = current_patch.osc1_pw & pw_mask;
+          pw_hi = current_patch.osc1_pw >> 8;
+
+          SID_control_packet.reg_addr = SID_OSC1_PW_LO;
+          SID_control_packet.reg_data = pw_lo;
+          send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+
+          SID_control_packet.reg_addr = SID_OSC1_PW_HI;
+          SID_control_packet.reg_data = pw_hi;
+          send_to_QSID(sockfd, &SID_control_packet, &servaddr); 
+         }
+       }
+
+      if(input == 'Q')
+       {
+        if(current_patch.osc1_pw < 4060)
+         {
+          current_patch.osc1_pw += 30;
+          pw_lo = current_patch.osc1_pw & pw_mask;
+          pw_hi = current_patch.osc1_pw >> 8;
+
+          SID_control_packet.reg_addr = SID_OSC1_PW_LO;
+          SID_control_packet.reg_data = pw_lo;
+          send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+
+          SID_control_packet.reg_addr = SID_OSC1_PW_HI;
+          SID_control_packet.reg_data = pw_hi;
+          send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+         }
+       }
+
+      if(input == 'w')
+       {
+        if(current_patch.osc2_pw > 30)
+         {
+          current_patch.osc2_pw -= 30;
+          pw_lo = current_patch.osc2_pw & pw_mask;
+          pw_hi = current_patch.osc2_pw >> 8;
+
+          SID_control_packet.reg_addr = SID_OSC2_PW_LO;
+          SID_control_packet.reg_data = pw_lo;
+          send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+
+          SID_control_packet.reg_addr = SID_OSC2_PW_HI;
+          SID_control_packet.reg_data = pw_hi;
+          send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+         }
+       }
+
+      if(input == 'W')
+       {
+        if(current_patch.osc2_pw < 4060)
+         {
+          current_patch.osc2_pw += 30;
+          pw_lo = current_patch.osc2_pw & pw_mask;
+          pw_hi = current_patch.osc2_pw >> 8;
+          
+          SID_control_packet.reg_addr = SID_OSC2_PW_LO;
+          SID_control_packet.reg_data = pw_lo;
+          send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+
+          SID_control_packet.reg_addr = SID_OSC2_PW_HI;
+          SID_control_packet.reg_data = pw_hi;
+          send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+         }
+       }
+
+      if(input == 'e')
+       {
+        if(current_patch.osc3_pw > 30)
+         {
+          current_patch.osc3_pw -= 30;
+          pw_lo = current_patch.osc3_pw & pw_mask;
+          pw_hi = current_patch.osc3_pw >> 8;
+
+          SID_control_packet.reg_addr = SID_OSC3_PW_LO;
+          SID_control_packet.reg_data = pw_lo;
+          send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+
+          SID_control_packet.reg_addr = SID_OSC3_PW_HI;
+          SID_control_packet.reg_data = pw_hi;
+          send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+         }
+       }
+
+      if(input == 'W')
+       {
+        if(current_patch.osc3_pw < 4060)
+         {
+          current_patch.osc3_pw += 30;
+          pw_lo = current_patch.osc3_pw & pw_mask;
+          pw_hi = current_patch.osc3_pw >> 8;
+
+          SID_control_packet.reg_addr = SID_OSC3_PW_LO;
+          SID_control_packet.reg_data = pw_lo;
+          send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+
+          SID_control_packet.reg_addr = SID_OSC3_PW_HI;
+          SID_control_packet.reg_data = pw_hi;
+          send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+         }
+       }
+
+
       if(input == 'c')
        {
-        if(current_patch.filter_cutoff > 100)
+        if(current_patch.filter_cutoff > 30)
          {
-          current_patch.filter_cutoff -= 100;
+          current_patch.filter_cutoff -= 30;
           cutoff_lo = current_patch.filter_cutoff & 7; // lowest three bits
           cutoff_hi = current_patch.filter_cutoff  >> 3;  // shift out three bits
 
@@ -545,9 +828,9 @@ int main(int argc, char**argv)
 
       if(input == 'C')
        {
-        if(current_patch.filter_cutoff < 3900)
+        if(current_patch.filter_cutoff < 2010)
          {
-          current_patch.filter_cutoff += 100;
+          current_patch.filter_cutoff += 30;
           cutoff_lo = current_patch.filter_cutoff & 7; // lowest three bits
           cutoff_hi = current_patch.filter_cutoff  >> 3;  // shift out three bits
 
@@ -591,7 +874,7 @@ int main(int argc, char**argv)
      {
       if(current_patch.filter_reso < 14)
        {
-        current_patch.filter_reso--;
+        current_patch.filter_reso++;
         res_filt_reg = current_patch.filter_reso << 4;
 
         if(current_patch.osc1_filter_on)
@@ -873,6 +1156,77 @@ int main(int argc, char**argv)
          send_to_QSID(sockfd, &SID_control_packet, &servaddr);
 
        }
+
+     if(input == '>')
+      {
+        
+        if(current_patch.volume < 15)
+         current_patch.volume++;
+        
+        mode_vol_reg = current_patch.volume; //<< 4;
+
+        switch(current_patch.filter_mode)
+         {
+
+           case FILTER_OFF:
+             mode_vol_reg = mode_vol_reg | FILTER_OFF;
+             break;
+
+           case FILTER_HIGHPASS:
+             mode_vol_reg = mode_vol_reg | FILTER_HIGHPASS;
+             break;
+
+           case FILTER_BANDPASS:
+             mode_vol_reg = mode_vol_reg | FILTER_BANDPASS;
+             break;
+
+           case FILTER_LOWPASS:
+             mode_vol_reg = mode_vol_reg | FILTER_LOWPASS;
+             break;
+
+         }
+
+       SID_control_packet.reg_addr = SID_FLT_MODE_VOL;
+       SID_control_packet.reg_data = mode_vol_reg;
+       send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+
+      }
+
+     if(input == '<')
+      {
+        
+        if(current_patch.volume > 0)
+         current_patch.volume--;
+        
+        mode_vol_reg = current_patch.volume; //<< 4;
+      
+        switch(current_patch.filter_mode)
+         {
+       
+           case FILTER_OFF:
+             mode_vol_reg = mode_vol_reg | FILTER_OFF;
+             break;
+
+           case FILTER_HIGHPASS:
+             mode_vol_reg = mode_vol_reg | FILTER_HIGHPASS;
+             break;
+
+           case FILTER_BANDPASS:
+             mode_vol_reg = mode_vol_reg | FILTER_BANDPASS;
+             break;
+
+           case FILTER_LOWPASS:
+             mode_vol_reg = mode_vol_reg | FILTER_LOWPASS;
+             break;
+
+         }
+
+       SID_control_packet.reg_addr = SID_FLT_MODE_VOL;
+       SID_control_packet.reg_data = mode_vol_reg;
+       send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+
+      }
+
 
      if(input == 'z')
        save_patch(&current_patch);
