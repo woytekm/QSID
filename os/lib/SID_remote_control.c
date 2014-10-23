@@ -84,13 +84,14 @@ void *LIB_SID_remote_control(void)
        }
  
       if(!is_virtual)
+
         for(i = 1; i <= G_inventory_voice_count; i++)
          {
           SID_control_packet.SID_addr = G_voice_inventory[i].address;
           write(G_SID_writer_rx_pipe[1], &SID_control_packet, sizeof(SID_msg_t));
          }
-    
-      is_virtual = 0;
+
+      else is_virtual = 0;
      
     }
 

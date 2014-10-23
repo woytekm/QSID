@@ -24,11 +24,15 @@
 #define ROW3 5
 #define ROW4 6
 #define ROW5 7
+#define ROW6 8
+#define ROW7 9
 
-#define ROW6 10
-#define ROW7 11
-#define ROW8 12
-#define ROW9 13
+#define ROW10 12
+#define ROW11 13
+#define ROW12 14
+#define ROW13 15
+
+#define STATUS_LINE 19
 
 #define PANEL_WIDTH 95
 #define PANEL_HEIGHT 20
@@ -42,30 +46,36 @@ void refresh_panel_data(patch_data_t *patch)
    mvprintw(ROW3,COLUMN1,"q - PW + Q        (%d)  ",patch->osc1_pw);
    mvprintw(ROW4,COLUMN1,"t - detune + T    (%d)  ",patch->osc1_detune);
    mvprintw(ROW5,COLUMN1,"4 toggle filter   (%d)  ",patch->osc1_filter_on);
+   mvprintw(ROW6,COLUMN1,"7 toggle sync     (%d)  ",patch->osc1_sync_on);
+   mvprintw(ROW7,COLUMN1,"& toggle ring mod (%d)  ",patch->osc1_ringmod_on);
 
    mvprintw(ROW1,COLUMN2,"2 toggle on       (%d)  ",patch->osc2_on);
    mvprintw(ROW2,COLUMN2,"@ toggle waveform (%d)  ",patch->osc2_wave);
    mvprintw(ROW3,COLUMN2,"w - PW + W        (%d)  ",patch->osc2_pw);
    mvprintw(ROW4,COLUMN2,"y - detune + Y    (%d)  ",patch->osc2_detune);
    mvprintw(ROW5,COLUMN2,"5 toggle filter   (%d)  ",patch->osc2_filter_on);
+   mvprintw(ROW6,COLUMN2,"8 toggle sync     (%d)  ",patch->osc2_sync_on);
+   mvprintw(ROW7,COLUMN2,"* toggle ring mod (%d)  ",patch->osc2_ringmod_on);
 
    mvprintw(ROW1,COLUMN3,"3 toggle on       (%d)  ",patch->osc3_on);
    mvprintw(ROW2,COLUMN3,"# toggle waveform (%d)  ",patch->osc3_wave);
    mvprintw(ROW3,COLUMN3,"e - PW + E        (%d)  ",patch->osc3_pw);
    mvprintw(ROW4,COLUMN3,"u - detune + U    (%d)  ",patch->osc3_detune);
    mvprintw(ROW5,COLUMN3,"6 toggle filter   (%d)  ",patch->osc3_filter_on);
+   mvprintw(ROW6,COLUMN3,"9 toggle sync     (%d)  ",patch->osc3_sync_on);
+   mvprintw(ROW7,COLUMN3,"( toggle ring mod (%d)  ",patch->osc3_ringmod_on);
 
 
-   mvprintw(ROW6,COLUMN1,"c -  cutoff   + C (%d)  ",patch->filter_cutoff);
-   mvprintw(ROW7,COLUMN1,"v - resonance + V (%d)  ",patch->filter_reso);
-   mvprintw(ROW8,COLUMN1,"m toggle mode     (%d)  ",patch->filter_mode);
+   mvprintw(ROW10,COLUMN1,"c -  cutoff   + C (%d)  ",patch->filter_cutoff);
+   mvprintw(ROW11,COLUMN1,"v - resonance + V (%d)  ",patch->filter_reso);
+   mvprintw(ROW12,COLUMN1,"m toggle mode     (%d)  ",patch->filter_mode);
 
-   mvprintw(ROW6,COLUMN2,"a -  attack  + A (%d)  ",patch->osc1_adsr_attack);
-   mvprintw(ROW7,COLUMN2,"d -  decay   + D (%d)  ",patch->osc1_adsr_decay);
-   mvprintw(ROW8,COLUMN2,"s -  sustain + S (%d)  ",patch->osc1_adsr_sustain);
-   mvprintw(ROW9,COLUMN2,"r -  release + R (%d)  ",patch->osc1_adsr_release);
+   mvprintw(ROW10,COLUMN2,"a -  attack  + A (%d)  ",patch->osc1_adsr_attack);
+   mvprintw(ROW11,COLUMN2,"d -  decay   + D (%d)  ",patch->osc1_adsr_decay);
+   mvprintw(ROW12,COLUMN2,"s -  sustain + S (%d)  ",patch->osc1_adsr_sustain);
+   mvprintw(ROW13,COLUMN2,"r -  release + R (%d)  ",patch->osc1_adsr_release);
 
-   mvprintw(ROW6,COLUMN3,"< - main volume + > (%d)  ",patch->volume);
+   mvprintw(ROW10,COLUMN3,"< - main volume + > (%d)  ",patch->volume);
 
    refresh();
 
@@ -78,13 +88,13 @@ void draw_panel()
            "==== QSID remote controller =================================================================");
   mvprintw(PANEL_UPPER_LEFT_CORNER_Y+1, PANEL_UPPER_LEFT_CORNER_X,
            "====== OSC1 ============================ OSC2 ======================== OSC3 =================");
-  mvprintw(PANEL_UPPER_LEFT_CORNER_Y+7, PANEL_UPPER_LEFT_CORNER_X,
+  mvprintw(PANEL_UPPER_LEFT_CORNER_Y+9, PANEL_UPPER_LEFT_CORNER_X,
            "=============================================================================================");
-  mvprintw(PANEL_UPPER_LEFT_CORNER_Y+8, PANEL_UPPER_LEFT_CORNER_X,
+  mvprintw(PANEL_UPPER_LEFT_CORNER_Y+10, PANEL_UPPER_LEFT_CORNER_X,
            "===== Filter ======================== AMP ADSR ====================== Volume ================");
-  mvprintw(PANEL_UPPER_LEFT_CORNER_Y+14, PANEL_UPPER_LEFT_CORNER_X,
+  mvprintw(PANEL_UPPER_LEFT_CORNER_Y+16, PANEL_UPPER_LEFT_CORNER_X,
            "=============================================================================================");
-  mvprintw(PANEL_UPPER_LEFT_CORNER_Y+15, PANEL_UPPER_LEFT_CORNER_X,
+  mvprintw(PANEL_UPPER_LEFT_CORNER_Y+17, PANEL_UPPER_LEFT_CORNER_X,
            "========================================= d - load patch === z - save patch === x - quit ====");
   refresh();
  }
@@ -133,20 +143,28 @@ void init_patch(patch_data_t *blank_patch)
    blank_patch->osc2_pw = 2048;
    blank_patch->osc3_pw = 2048;
 
-   blank_patch->osc1_filter_on = 1;
-   blank_patch->osc2_filter_on = 1;
-   blank_patch->osc3_filter_on = 1;
+   blank_patch->osc1_filter_on = 0;
+   blank_patch->osc2_filter_on = 0;
+   blank_patch->osc3_filter_on = 0;
  
    blank_patch->osc1_on = 1;
    blank_patch->osc2_on = 1;
-   blank_patch->osc3_on = 1; 
+   blank_patch->osc3_on = 0; 
+
+   blank_patch->osc1_sync_on = 0;
+   blank_patch->osc2_sync_on = 0;
+   blank_patch->osc3_sync_on = 0;
+
+   blank_patch->osc1_ringmod_on = 0;
+   blank_patch->osc2_ringmod_on = 0;
+   blank_patch->osc3_ringmod_on = 0;
 
    blank_patch->filter_cutoff = 0;
    blank_patch->filter_reso = 0;
   
-   blank_patch->filter_mode = FILTER_LOWPASS;
+   blank_patch->filter_mode = FILTER_OFF;
 
-   blank_patch->volume = 14;
+   blank_patch->volume = 8;
 
  }
 
@@ -157,6 +175,19 @@ void remote_apply_patch(patch_data_t *new_patch, int sock, struct sockaddr_in *s
     uint16_t pw_mask = 255;
     
     control_reg = 0;
+
+
+    SID_control_packet.reg_addr = SID_OSC1_DETUNE;
+    SID_control_packet.reg_data = new_patch->osc1_detune;
+    send_to_QSID(sock, &SID_control_packet, srv_addr);
+
+    SID_control_packet.reg_addr = SID_OSC2_DETUNE;
+    SID_control_packet.reg_data = new_patch->osc2_detune;
+    send_to_QSID(sock, &SID_control_packet, srv_addr);
+
+    SID_control_packet.reg_addr = SID_OSC3_DETUNE;
+    SID_control_packet.reg_data = new_patch->osc3_detune;
+    send_to_QSID(sock, &SID_control_packet, srv_addr);
 
     pw_lo = new_patch->osc1_pw & pw_mask;
     pw_hi = new_patch->osc1_pw >> 8; 
@@ -195,6 +226,8 @@ void remote_apply_patch(patch_data_t *new_patch, int sock, struct sockaddr_in *s
         control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
         control_reg = control_reg | WAVEFORM_TRIANGLE;
      }
+
+    control_reg = control_reg | new_patch->osc1_ringmod_on | new_patch->osc1_sync_on;
 
     SID_control_packet.reg_addr = SID_OSC1_CTRL;
     SID_control_packet.reg_data = control_reg;
@@ -237,6 +270,8 @@ void remote_apply_patch(patch_data_t *new_patch, int sock, struct sockaddr_in *s
         control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
         control_reg = control_reg | WAVEFORM_TRIANGLE;
      }
+
+    control_reg = control_reg | new_patch->osc2_ringmod_on | new_patch->osc2_sync_on;
 
     SID_control_packet.reg_addr = SID_OSC2_CTRL;
     SID_control_packet.reg_data = control_reg;
@@ -284,6 +319,8 @@ void remote_apply_patch(patch_data_t *new_patch, int sock, struct sockaddr_in *s
         break;
      }
 
+    control_reg = control_reg | new_patch->osc3_ringmod_on | new_patch->osc3_sync_on;
+
     SID_control_packet.reg_addr = SID_OSC3_CTRL;
     SID_control_packet.reg_data = control_reg;
     send_to_QSID(sock, &SID_control_packet, srv_addr);
@@ -319,27 +356,8 @@ void remote_apply_patch(patch_data_t *new_patch, int sock, struct sockaddr_in *s
 
     mode_vol_reg = new_patch->volume; //<< 4;
     
-    switch(new_patch->filter_mode)
-     {
-     
-      case FILTER_OFF:
-        mode_vol_reg = mode_vol_reg | FILTER_OFF;
-        break;
+    mode_vol_reg = mode_vol_reg | new_patch->filter_mode;
 
-      case FILTER_HIGHPASS:
-        mode_vol_reg = mode_vol_reg | FILTER_HIGHPASS;
-        break;
-
-      case FILTER_BANDPASS:
-        mode_vol_reg = mode_vol_reg | FILTER_BANDPASS;
-        break;
-
-      case FILTER_LOWPASS:
-        mode_vol_reg = mode_vol_reg | FILTER_LOWPASS;
-        break;
-    
-     }
-  
     SID_control_packet.reg_addr = SID_FLT_MODE_VOL;
     SID_control_packet.reg_data = mode_vol_reg;
     send_to_QSID(sock, &SID_control_packet, srv_addr);   
@@ -543,6 +561,9 @@ int main(int argc, char**argv)
 
         SID_control_packet.reg_addr = SID_OSC1_STATE;
         SID_control_packet.reg_data = current_patch.osc1_on;
+
+        mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
         send_to_QSID(sockfd, &SID_control_packet, &servaddr);
   
        }
@@ -556,6 +577,9 @@ int main(int argc, char**argv)
 
         SID_control_packet.reg_addr = SID_OSC2_STATE;
         SID_control_packet.reg_data = current_patch.osc2_on;
+
+        mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
         send_to_QSID(sockfd, &SID_control_packet, &servaddr);
  
        }
@@ -569,6 +593,9 @@ int main(int argc, char**argv)
 
         SID_control_packet.reg_addr = SID_OSC3_STATE;
         SID_control_packet.reg_data = current_patch.osc3_on;
+
+        mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
         send_to_QSID(sockfd, &SID_control_packet, &servaddr);
  
        }
@@ -586,32 +613,14 @@ int main(int argc, char**argv)
 
          control_reg = 0; 
 
-         switch(current_patch.osc1_wave)
-           {
-            case WAVEFORM_NOISE:
-             control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
-             control_reg = control_reg | WAVEFORM_NOISE;
-             break;
+         control_reg = current_patch.osc1_wave | current_patch.osc1_ringmod_on | current_patch.osc1_sync_on;
 
-           case WAVEFORM_PULSE:
-             control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
-             control_reg = control_reg | WAVEFORM_PULSE;
-             break;
+         SID_control_packet.reg_addr = SID_OSC1_CTRL;
+         SID_control_packet.reg_data = control_reg;
 
-           case WAVEFORM_SAWTOOTH:
-             control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
-             control_reg = control_reg | WAVEFORM_SAWTOOTH;
-             break;
+         mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
 
-          case WAVEFORM_TRIANGLE:
-            control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
-            control_reg = control_reg | WAVEFORM_TRIANGLE;
-            break;
-          }
-
-       SID_control_packet.reg_addr = SID_OSC1_CTRL;
-       SID_control_packet.reg_data = control_reg;
-       send_to_QSID(sockfd, &SID_control_packet, &servaddr); 
+         send_to_QSID(sockfd, &SID_control_packet, &servaddr); 
         
        }
 
@@ -628,32 +637,14 @@ int main(int argc, char**argv)
 
          control_reg = 0;
 
-         switch(current_patch.osc2_wave)
-           {
-            case WAVEFORM_NOISE:
-             control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
-             control_reg = control_reg | WAVEFORM_NOISE;
-             break;
+         control_reg = current_patch.osc2_wave | current_patch.osc2_ringmod_on | current_patch.osc2_sync_on;
 
-           case WAVEFORM_PULSE:
-             control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
-             control_reg = control_reg | WAVEFORM_PULSE;
-             break;
+         SID_control_packet.reg_addr = SID_OSC2_CTRL;
+         SID_control_packet.reg_data = control_reg;
 
-           case WAVEFORM_SAWTOOTH:
-             control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
-             control_reg = control_reg | WAVEFORM_SAWTOOTH;
-             break;
+         mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
 
-          case WAVEFORM_TRIANGLE:
-            control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
-            control_reg = control_reg | WAVEFORM_TRIANGLE;
-            break;
-          }
-
-       SID_control_packet.reg_addr = SID_OSC2_CTRL;
-       SID_control_packet.reg_data = control_reg;
-       send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+         send_to_QSID(sockfd, &SID_control_packet, &servaddr);
 
        }
 
@@ -670,32 +661,14 @@ int main(int argc, char**argv)
 
          control_reg = 0;
 
-         switch(current_patch.osc3_wave)
-           {
-            case WAVEFORM_NOISE:
-             control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
-             control_reg = control_reg | WAVEFORM_NOISE;
-             break;
+         control_reg = current_patch.osc3_wave | current_patch.osc3_ringmod_on | current_patch.osc3_sync_on;
 
-           case WAVEFORM_PULSE:
-             control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
-             control_reg = control_reg | WAVEFORM_PULSE;
-             break;
+         SID_control_packet.reg_addr = SID_OSC3_CTRL;
+         SID_control_packet.reg_data = control_reg;
 
-           case WAVEFORM_SAWTOOTH:
-             control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
-             control_reg = control_reg | WAVEFORM_SAWTOOTH;
-             break;
+         mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
 
-          case WAVEFORM_TRIANGLE:
-            control_reg = control_reg & CLEAR_ALL_WAVEFORMS;
-            control_reg = control_reg | WAVEFORM_TRIANGLE;
-            break;
-          }
-
-       SID_control_packet.reg_addr = SID_OSC3_CTRL;
-       SID_control_packet.reg_data = control_reg;
-       send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+         send_to_QSID(sockfd, &SID_control_packet, &servaddr);
 
        }
 
@@ -709,10 +682,16 @@ int main(int argc, char**argv)
 
           SID_control_packet.reg_addr = SID_OSC1_PW_LO;
           SID_control_packet.reg_data = pw_lo;
+
+          mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
           send_to_QSID(sockfd, &SID_control_packet, &servaddr);
 
           SID_control_packet.reg_addr = SID_OSC1_PW_HI;
           SID_control_packet.reg_data = pw_hi;
+
+          mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
           send_to_QSID(sockfd, &SID_control_packet, &servaddr); 
          }
        }
@@ -727,10 +706,16 @@ int main(int argc, char**argv)
 
           SID_control_packet.reg_addr = SID_OSC1_PW_LO;
           SID_control_packet.reg_data = pw_lo;
+
+          mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
           send_to_QSID(sockfd, &SID_control_packet, &servaddr);
 
           SID_control_packet.reg_addr = SID_OSC1_PW_HI;
           SID_control_packet.reg_data = pw_hi;
+
+          mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
           send_to_QSID(sockfd, &SID_control_packet, &servaddr);
          }
        }
@@ -745,10 +730,16 @@ int main(int argc, char**argv)
 
           SID_control_packet.reg_addr = SID_OSC2_PW_LO;
           SID_control_packet.reg_data = pw_lo;
+
+          mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
           send_to_QSID(sockfd, &SID_control_packet, &servaddr);
 
           SID_control_packet.reg_addr = SID_OSC2_PW_HI;
           SID_control_packet.reg_data = pw_hi;
+
+          mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
           send_to_QSID(sockfd, &SID_control_packet, &servaddr);
          }
        }
@@ -763,10 +754,16 @@ int main(int argc, char**argv)
           
           SID_control_packet.reg_addr = SID_OSC2_PW_LO;
           SID_control_packet.reg_data = pw_lo;
+
+          mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
           send_to_QSID(sockfd, &SID_control_packet, &servaddr);
 
           SID_control_packet.reg_addr = SID_OSC2_PW_HI;
           SID_control_packet.reg_data = pw_hi;
+
+          mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
           send_to_QSID(sockfd, &SID_control_packet, &servaddr);
          }
        }
@@ -781,15 +778,21 @@ int main(int argc, char**argv)
 
           SID_control_packet.reg_addr = SID_OSC3_PW_LO;
           SID_control_packet.reg_data = pw_lo;
+
+          mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
           send_to_QSID(sockfd, &SID_control_packet, &servaddr);
 
           SID_control_packet.reg_addr = SID_OSC3_PW_HI;
           SID_control_packet.reg_data = pw_hi;
+
+          mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
           send_to_QSID(sockfd, &SID_control_packet, &servaddr);
          }
        }
 
-      if(input == 'W')
+      if(input == 'E')
        {
         if(current_patch.osc3_pw < 4060)
          {
@@ -799,13 +802,139 @@ int main(int argc, char**argv)
 
           SID_control_packet.reg_addr = SID_OSC3_PW_LO;
           SID_control_packet.reg_data = pw_lo;
+
+          mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
           send_to_QSID(sockfd, &SID_control_packet, &servaddr);
 
           SID_control_packet.reg_addr = SID_OSC3_PW_HI;
           SID_control_packet.reg_data = pw_hi;
+
+          mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
           send_to_QSID(sockfd, &SID_control_packet, &servaddr);
          }
        }
+
+     if(input == '7')
+      {
+       if(current_patch.osc1_sync_on)
+        current_patch.osc1_sync_on = 0;
+       else
+        current_patch.osc1_sync_on = OSC_SYNC;
+
+       control_reg = 0;
+
+       control_reg = current_patch.osc1_wave | current_patch.osc1_ringmod_on | current_patch.osc1_sync_on;
+
+       SID_control_packet.reg_addr = SID_OSC1_CTRL;
+       SID_control_packet.reg_data = control_reg;
+
+       mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
+       send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+
+      }
+
+     if(input == '&')
+      {
+       if(current_patch.osc1_ringmod_on)
+        current_patch.osc1_ringmod_on = 0;
+       else
+        current_patch.osc1_ringmod_on = RINGMOD;
+
+       control_reg = 0;
+
+       control_reg = current_patch.osc1_wave | current_patch.osc1_ringmod_on | current_patch.osc1_sync_on;
+       
+       SID_control_packet.reg_addr = SID_OSC1_CTRL;
+       SID_control_packet.reg_data = control_reg;
+
+       mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
+       send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+
+      }
+
+     if(input == '8')
+      {
+       if(current_patch.osc2_sync_on)
+        current_patch.osc2_sync_on = 0;
+       else
+        current_patch.osc2_sync_on = OSC_SYNC;
+
+       control_reg = 0;
+
+       control_reg = current_patch.osc2_wave | current_patch.osc2_ringmod_on | current_patch.osc2_sync_on;
+       
+       SID_control_packet.reg_addr = SID_OSC2_CTRL;
+       SID_control_packet.reg_data = control_reg;
+
+       mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
+       send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+
+      }
+
+     if(input == '*')
+      {
+       if(current_patch.osc2_ringmod_on)
+        current_patch.osc2_ringmod_on = 0;
+       else
+        current_patch.osc2_ringmod_on = RINGMOD;
+          
+       control_reg = 0;
+          
+       control_reg = current_patch.osc2_wave | current_patch.osc2_ringmod_on | current_patch.osc2_sync_on;
+          
+       SID_control_packet.reg_addr = SID_OSC2_CTRL;
+       SID_control_packet.reg_data = control_reg;
+
+       mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
+       send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+
+      }
+
+     if(input == '9')
+      {
+       if(current_patch.osc3_sync_on)
+        current_patch.osc3_sync_on = 0;
+       else
+        current_patch.osc3_sync_on = OSC_SYNC;
+
+       control_reg = 0;
+
+       control_reg = current_patch.osc3_wave | current_patch.osc3_ringmod_on | current_patch.osc3_sync_on;
+       
+       SID_control_packet.reg_addr = SID_OSC3_CTRL;
+       SID_control_packet.reg_data = control_reg;
+
+       mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
+       send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+
+      }
+
+     if(input == '(')
+      {
+       if(current_patch.osc3_ringmod_on)
+        current_patch.osc3_ringmod_on = 0;
+       else
+        current_patch.osc3_ringmod_on = RINGMOD;
+          
+       control_reg = 0;
+          
+       control_reg = current_patch.osc3_wave | current_patch.osc3_ringmod_on | current_patch.osc3_sync_on;
+          
+       SID_control_packet.reg_addr = SID_OSC3_CTRL;
+       SID_control_packet.reg_data = control_reg;
+
+       mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
+       send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+
+      }
 
 
       if(input == 'c')
@@ -818,10 +947,16 @@ int main(int argc, char**argv)
 
           SID_control_packet.reg_addr = SID_FLT_CUTOFF_LO;
           SID_control_packet.reg_data = cutoff_lo;
+
+          mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
           send_to_QSID(sockfd, &SID_control_packet, &servaddr);
 
           SID_control_packet.reg_addr = SID_FLT_CUTOFF_HI;
           SID_control_packet.reg_data = cutoff_hi;
+
+          mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
           send_to_QSID(sockfd, &SID_control_packet, &servaddr);
          } 
        }
@@ -836,10 +971,16 @@ int main(int argc, char**argv)
 
           SID_control_packet.reg_addr = SID_FLT_CUTOFF_LO;
           SID_control_packet.reg_data = cutoff_lo;
+
+          mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
           send_to_QSID(sockfd, &SID_control_packet, &servaddr);
 
           SID_control_packet.reg_addr = SID_FLT_CUTOFF_HI;
           SID_control_packet.reg_data = cutoff_hi;
+
+          mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
           send_to_QSID(sockfd, &SID_control_packet, &servaddr);
          }
        }
@@ -866,6 +1007,9 @@ int main(int argc, char**argv)
 
         SID_control_packet.reg_addr = SID_FLT_RESO_ROUTE;
         SID_control_packet.reg_data = res_filt_reg;
+
+        mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
         send_to_QSID(sockfd, &SID_control_packet, &servaddr);
        }
      }
@@ -891,6 +1035,9 @@ int main(int argc, char**argv)
 
         SID_control_packet.reg_addr = SID_FLT_RESO_ROUTE;
         SID_control_packet.reg_data = res_filt_reg;
+
+        mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
         send_to_QSID(sockfd, &SID_control_packet, &servaddr);
        }
      }
@@ -917,6 +1064,9 @@ int main(int argc, char**argv)
 
         SID_control_packet.reg_addr = SID_FLT_RESO_ROUTE;
         SID_control_packet.reg_data = res_filt_reg;
+
+        mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
         send_to_QSID(sockfd, &SID_control_packet, &servaddr);
     }
 
@@ -942,6 +1092,9 @@ int main(int argc, char**argv)
 
         SID_control_packet.reg_addr = SID_FLT_RESO_ROUTE;
         SID_control_packet.reg_data = res_filt_reg;
+
+        mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
         send_to_QSID(sockfd, &SID_control_packet, &servaddr);
     }
 
@@ -967,6 +1120,9 @@ int main(int argc, char**argv)
 
         SID_control_packet.reg_addr = SID_FLT_RESO_ROUTE;
         SID_control_packet.reg_data = res_filt_reg;
+
+        mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
         send_to_QSID(sockfd, &SID_control_packet, &servaddr);
     }
 
@@ -981,29 +1137,13 @@ int main(int argc, char**argv)
 
     mode_vol_reg = current_patch.volume; //<< 4;
 
-    switch(current_patch.filter_mode)
-     {
-
-      case FILTER_OFF:
-        mode_vol_reg = mode_vol_reg | FILTER_OFF;
-        break;
-
-      case FILTER_HIGHPASS:
-        mode_vol_reg = mode_vol_reg | FILTER_HIGHPASS;
-        break;
-
-      case FILTER_BANDPASS:
-        mode_vol_reg = mode_vol_reg | FILTER_BANDPASS;
-        break;
-
-      case FILTER_LOWPASS:
-        mode_vol_reg = mode_vol_reg | FILTER_LOWPASS;
-        break;
-
-     }
+    mode_vol_reg = mode_vol_reg | current_patch.filter_mode;
 
     SID_control_packet.reg_addr = SID_FLT_MODE_VOL;
     SID_control_packet.reg_data = mode_vol_reg;
+
+    mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
     send_to_QSID(sockfd, &SID_control_packet, &servaddr);
 
    }
@@ -1163,32 +1303,16 @@ int main(int argc, char**argv)
         if(current_patch.volume < 15)
          current_patch.volume++;
         
-        mode_vol_reg = current_patch.volume; //<< 4;
+        mode_vol_reg = current_patch.volume | current_patch.filter_mode;
 
-        switch(current_patch.filter_mode)
-         {
+        //mode_vol_reg = mode_vol_reg | current_patch.filter_mode;
 
-           case FILTER_OFF:
-             mode_vol_reg = mode_vol_reg | FILTER_OFF;
-             break;
+        SID_control_packet.reg_addr = SID_FLT_MODE_VOL;
+        SID_control_packet.reg_data = mode_vol_reg;
 
-           case FILTER_HIGHPASS:
-             mode_vol_reg = mode_vol_reg | FILTER_HIGHPASS;
-             break;
+        mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
 
-           case FILTER_BANDPASS:
-             mode_vol_reg = mode_vol_reg | FILTER_BANDPASS;
-             break;
-
-           case FILTER_LOWPASS:
-             mode_vol_reg = mode_vol_reg | FILTER_LOWPASS;
-             break;
-
-         }
-
-       SID_control_packet.reg_addr = SID_FLT_MODE_VOL;
-       SID_control_packet.reg_data = mode_vol_reg;
-       send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+        send_to_QSID(sockfd, &SID_control_packet, &servaddr);
 
       }
 
@@ -1198,32 +1322,16 @@ int main(int argc, char**argv)
         if(current_patch.volume > 0)
          current_patch.volume--;
         
-        mode_vol_reg = current_patch.volume; //<< 4;
+        mode_vol_reg = current_patch.volume | current_patch.filter_mode; 
       
-        switch(current_patch.filter_mode)
-         {
-       
-           case FILTER_OFF:
-             mode_vol_reg = mode_vol_reg | FILTER_OFF;
-             break;
+        //mode_vol_reg = mode_vol_reg | current_patch.filter_mode;
 
-           case FILTER_HIGHPASS:
-             mode_vol_reg = mode_vol_reg | FILTER_HIGHPASS;
-             break;
+        SID_control_packet.reg_addr = SID_FLT_MODE_VOL;
+        SID_control_packet.reg_data = mode_vol_reg;
 
-           case FILTER_BANDPASS:
-             mode_vol_reg = mode_vol_reg | FILTER_BANDPASS;
-             break;
+        mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
 
-           case FILTER_LOWPASS:
-             mode_vol_reg = mode_vol_reg | FILTER_LOWPASS;
-             break;
-
-         }
-
-       SID_control_packet.reg_addr = SID_FLT_MODE_VOL;
-       SID_control_packet.reg_data = mode_vol_reg;
-       send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+        send_to_QSID(sockfd, &SID_control_packet, &servaddr);
 
       }
 
