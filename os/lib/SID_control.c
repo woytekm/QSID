@@ -1,6 +1,7 @@
 #include "common.h"
 #include "defs.h"
 #include "SID_writer.h"
+#include "MIDI_to_SID.h"
 #include "SID.h"
 #include "patch.h"
 
@@ -47,26 +48,28 @@ void LIB_apply_demo_patch(uint8_t board_address)
  }
 
 
-void LIB_SID_note_on(uint16_t SID_osc_pitch, uint8_t board_address)
+void LIB_SID_note_on(uint8_t MIDI_note, uint8_t board_address)
  {
 
-   // load pitch registers (+detune value from patch), and then trigger ADSR on all three oscillators at once
+   int8_t detune_osc1, detune_osc2, detune_osc3;
 
    SID_msg_t SID_OSC1_msg, SID_OSC2_msg, SID_OSC3_msg;
+   
+   // load pitch registers (+detune value from patch), and then trigger ADSR on all three oscillators at once
 
-   SID_OSC1_msg.reg_data = SID_osc_pitch + G_current_patch.osc1_detune;
+   SID_OSC1_msg.reg_data = G_MIDI_to_SID_reg[MIDI_note+G_current_patch.octave_transposition] + SYNTH_SID_oscillator_detune(MIDI_note, G_current_patch.osc1_detune);
    SID_OSC1_msg.reg_addr = SID_OSC1_FREQ_LO;
    SID_OSC1_msg.SID_addr = board_address;
 
    write(G_SID_writer_rx_pipe[1], &SID_OSC1_msg, sizeof(SID_msg_t));
 
-   SID_OSC2_msg.reg_data = SID_osc_pitch + G_current_patch.osc2_detune;
+   SID_OSC2_msg.reg_data = G_MIDI_to_SID_reg[MIDI_note+G_current_patch.octave_transposition] + SYNTH_SID_oscillator_detune(MIDI_note, G_current_patch.osc2_detune);
    SID_OSC2_msg.reg_addr = SID_OSC2_FREQ_LO;
    SID_OSC2_msg.SID_addr = board_address;
 
    write(G_SID_writer_rx_pipe[1], &SID_OSC2_msg, sizeof(SID_msg_t));
 
-   SID_OSC3_msg.reg_data = SID_osc_pitch + G_current_patch.osc3_detune;
+   SID_OSC3_msg.reg_data = G_MIDI_to_SID_reg[MIDI_note+G_current_patch.octave_transposition] + SYNTH_SID_oscillator_detune(MIDI_note, G_current_patch.osc3_detune);
    SID_OSC3_msg.reg_addr = SID_OSC3_FREQ_LO;
    SID_OSC3_msg.SID_addr = board_address;
 
@@ -83,11 +86,9 @@ void LIB_SID_note_on(uint16_t SID_osc_pitch, uint8_t board_address)
    
    if(G_current_patch.osc1_on) 
     write(G_SID_writer_rx_pipe[1], &SID_OSC1_msg, sizeof(SID_msg_t));
-   usleep(10);
 
    if(G_current_patch.osc2_on)
     write(G_SID_writer_rx_pipe[1], &SID_OSC2_msg, sizeof(SID_msg_t));
-   usleep(10);
 
    if(G_current_patch.osc3_on)
     write(G_SID_writer_rx_pipe[1], &SID_OSC3_msg, sizeof(SID_msg_t));

@@ -552,6 +552,37 @@ int main(int argc, char**argv)
          break;
         }
 
+
+      if(input == 't')
+       {
+
+        if(current_patch.osc1_detune > -10)
+         current_patch.osc1_detune--;
+
+        SID_control_packet.reg_addr = SID_OSC1_DETUNE;
+        SID_control_packet.reg_data = current_patch.osc1_detune;
+
+        mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
+        send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+
+       }
+
+      if(input == 'T')
+       {
+
+        if(current_patch.osc1_detune < 10)
+         current_patch.osc1_detune++;
+
+        SID_control_packet.reg_addr = SID_OSC1_DETUNE;
+        SID_control_packet.reg_data = current_patch.osc1_detune;
+
+        mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
+        send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+
+       }
+
       if(input == '1')
        {
         if(current_patch.osc1_on)

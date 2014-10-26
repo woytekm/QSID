@@ -24,11 +24,11 @@ void SYNTH_note_on(uint16_t midi_note, uint16_t attack_velocity)
      // SID specific part 
      // TODO: check patch data: which oscillators to fire up, detune, and other stuff
      //if(G_current_patch.osc1_on)
-      LIB_SID_OSC1_note_on(G_MIDI_to_SID_reg[midi_note+G_current_patch.octave_transposition],G_voice_inventory[free_voice].address);
+      LIB_SID_OSC1_note_on(midi_note+G_current_patch.octave_transposition,G_voice_inventory[free_voice].address);
      //if(G_current_patch.osc2_on)
-      LIB_SID_OSC2_note_on(G_MIDI_to_SID_reg[midi_note+G_current_patch.octave_transposition],G_voice_inventory[free_voice].address);
+      LIB_SID_OSC2_note_on(midi_note+G_current_patch.octave_transposition,G_voice_inventory[free_voice].address);
      //if(G_current_patch.osc3_on)
-      LIB_SID_OSC3_note_on(G_MIDI_to_SID_reg[midi_note+G_current_patch.octave_transposition],G_voice_inventory[free_voice].address);
+      LIB_SID_OSC3_note_on(midi_note+G_current_patch.octave_transposition,G_voice_inventory[free_voice].address);
      // SID specific part end
 
     }
@@ -48,14 +48,12 @@ void SYNTH_note_on_fast(uint16_t midi_note, uint16_t attack_velocity)
 
    if(free_voice)
     {
-
      SYS_debug(DEBUG_HIGH,"SYNTH_note_on_fast: allocating voice %d",free_voice);
      G_playing_voices++;
      G_voice_inventory[free_voice].state = G_playing_voices;  // set voice state to note age (this is currenlty most recent played note)
      G_voice_inventory[free_voice].note = midi_note;          // assign MIDI note to voice (needed for note off)
 
-     LIB_SID_note_on(G_MIDI_to_SID_reg[midi_note+G_current_patch.octave_transposition],G_voice_inventory[free_voice].address);
-
+     LIB_SID_note_on(midi_note+G_current_patch.octave_transposition,G_voice_inventory[free_voice].address);
     }
    else
     {

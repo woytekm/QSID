@@ -33,7 +33,7 @@
 
 typedef struct _patch_data_t {
   uint8_t  osc1_on;
-  uint8_t  osc1_detune;
+  int8_t  osc1_detune;
   uint16_t osc1_pw;
   uint8_t  osc1_wave;
   uint8_t  osc1_ringmod_on;
@@ -48,7 +48,7 @@ typedef struct _patch_data_t {
 
 
   uint8_t  osc2_on;
-  uint8_t  osc2_detune;
+  int8_t  osc2_detune;
   uint16_t osc2_pw;
   uint8_t  osc2_wave;
   uint8_t  osc2_ringmod_on;
@@ -63,7 +63,7 @@ typedef struct _patch_data_t {
 
 
   uint8_t  osc3_on;
-  uint8_t  osc3_detune;
+  int8_t  osc3_detune;
   uint16_t osc3_pw;
   uint8_t  osc3_wave;
   uint8_t  osc3_ringmod_on;
