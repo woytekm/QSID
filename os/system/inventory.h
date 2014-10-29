@@ -13,7 +13,8 @@ uint8_t G_inventory_voice_count;  // how much voices do we have?
 typedef struct {
   uint8_t address; // voice board address (unique ID of voice)
   uint8_t state;   // if this voice is currently playing - this will be more than 0 (values from 1 to G_inventory_voice_count - if polyphony is in use)
-  uint16_t note;   // if it currently plays - which note it plays?
+  uint16_t note;   // currently played note
+  uint64_t playstart;  // timestamp 
  } voice_info_t;
 
 voice_info_t G_voice_inventory[QSID_MAX_VOICES];   // 8 voice polyphony max (hardware limitations of MCP23017) 

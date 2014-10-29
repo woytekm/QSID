@@ -1,6 +1,6 @@
 include ../Makefile.inc
 
-INCLUDES= -I ../config -I ../lib -I ../midi -I ../synth -I ../system
+INCLUDES= -I ../config -I ../lib -I ../midi -I ../synth -I ../system 
 
 libqsid-i2c:
 	$(CC) $(CFLAGS) i2c_open.c -c  $(INCLUDES)

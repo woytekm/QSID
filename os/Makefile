@@ -8,7 +8,7 @@ MYLIBS       = libqsid-i2c.a libqsid-system.a libqsid-SID.a libqsid-MIDI.a libqs
 MYLIBDIRS    = -Llib -Lmidi -Lsynth -Lsystem -Lcontrol -Ldisplay
 SYSLIBS      = 
 SYSLIBDIRS   =
-LDOPTS       = -lqsid-system -lqsid-MIDI -lqsid-synth -lqsid-i2c -lqsid-SID -lpthread
+LDOPTS       = -lqsid-system -lqsid-MIDI -lqsid-SID -lqsid-synth -lqsid-i2c -lpthread
 OSEXE        = qsid-os
 
 
