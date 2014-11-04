@@ -64,12 +64,6 @@ void SYS_init(void)
    G_playing_voices = 0;
    G_QSID_task_count = 0;
 
-   if(pipe(G_SID_writer_rx_pipe) == -1)
-    {
-     SYS_error("cannot create SID_writer rx pipe.");
-     SYS_halt();
-    }
-
  }
 
 

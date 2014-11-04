@@ -49,10 +49,27 @@
 #define PRIO_LOW21 21
 #define PRIO_LOW20 20
 
+#define TASK_MIDI_IN 1
+#define TASK_SID_WRITER 2
+#define TASK_UDP_MIDI_IN 3
+
+#define TASK_LFO1 5
+#define TASK_LFO2 6
+
+#define TASK_HARDWARE_INPUT 8
+
+#define TASK_FILTER_ADSR_V1 11
+#define TASK_FILTER_ADSR_V2 12
+#define TASK_FILTER_ADSR_V3 13
+#define TASK_FILTER_ADSR_V4 14
+#define TASK_FILTER_ADSR_V5 15
+#define TASK_FILTER_ADSR_V6 16
+#define TASK_FILTER_ADSR_V7 17
+#define TASK_FILTER_ADSR_V8 18
 
 typedef struct _QSID_task_t {
-  char task_name[QSID_OS_MAX_TASK_NAME_LEN];
   pthread_t task_id;
+  int input_pipe[2];
  } QSID_task_t;
 
 QSID_task_t G_QSID_tasks[QSID_OS_MAX_TASK];

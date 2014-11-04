@@ -2,6 +2,7 @@
 #include "defs.h"
 #include "SID_writer.h"
 #include "i2c.h"
+#include "task.h"
 
 void LIB_SID_tx_thread(void) // SID writer thread
  {
@@ -12,7 +13,7 @@ void LIB_SID_tx_thread(void) // SID writer thread
   uint16_t bit_mask = 255;
   uint8_t msg_byte_lo, msg_byte_hi;
 
-  SID_message_pipe = G_SID_writer_rx_pipe[0];
+  SID_message_pipe = G_QSID_tasks[TASK_SID_WRITER].input_pipe[0];
 
   fds.fd = SID_message_pipe;
   fds.events = POLLIN;

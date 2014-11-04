@@ -12,6 +12,7 @@
 #include "SID_writer.h"
 #include "SID_control.h"
 #include "task.h"
+#include "lfo.h"
 
 
 //
@@ -56,13 +57,16 @@ void main(void)
  // start system tasks
 
  SYS_debug(DEBUG_LOW,"Starting MIDI IN thread...");
- SYS_start_task("MIDI_in", MIDI_IN_thread, SCHED_RR, PRIO_VERYHIGH95); 
+ SYS_start_task(TASK_MIDI_IN, MIDI_IN_thread, SCHED_RR, PRIO_VERYHIGH95); 
 
  SYS_debug(DEBUG_LOW,"Starting SID writer thread...");
- SYS_start_task("SID_tx", LIB_SID_tx_thread, SCHED_RR, PRIO_VERYHIGH94);
+ SYS_start_task(TASK_SID_WRITER, LIB_SID_tx_thread, SCHED_RR, PRIO_VERYHIGH94);
 
  SYS_debug(DEBUG_LOW,"Starting SID remote control thread...");
- SYS_start_task("SID_UDP_MIDI", LIB_SID_remote_control, SCHED_RR, PRIO_NORMAL50);
+ SYS_start_task(TASK_UDP_MIDI_IN, LIB_SID_remote_control, SCHED_RR, PRIO_NORMAL50);
+
+ SYS_debug(DEBUG_LOW,"Starting LFO1...");
+ SYS_start_task(TASK_LFO1, SYNTH_lfo1, SCHED_IDLE, 0);
 
  // do nothing
 

@@ -18,6 +18,3 @@
 
 #define QSID_OS_SID_REMOTE_CONTROL_PORT 6677
 
-int G_SID_writer_rx_pipe[2];
-
-

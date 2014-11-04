@@ -4,6 +4,7 @@
 #include "SID_writer.h"
 #include "inventory.h"
 #include "patch.h"
+#include "task.h"
 
 //
 // this task should accept midi sysex packets sent through UDP and set patch/SID registers accordingly
@@ -96,7 +97,7 @@ void *LIB_SID_remote_control(void)
         for(i = 1; i <= G_inventory_voice_count; i++)
          {
           SID_control_packet.SID_addr = G_voice_inventory[i].address;
-          write(G_SID_writer_rx_pipe[1], &SID_control_packet, sizeof(SID_msg_t));
+          write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_control_packet, sizeof(SID_msg_t));
          }
 
       else is_virtual = 0;
