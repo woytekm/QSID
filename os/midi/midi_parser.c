@@ -30,7 +30,10 @@
         }
 
       SYS_debug(DEBUG_HIGH,"MIDI note on, CH%d, (%x, %x)", midi_channel, midi_in_buffer[at_offset+1], midi_in_buffer[at_offset+2]);
-      SYNTH_note_on_fast(midi_in_buffer[at_offset+1], midi_in_buffer[at_offset+2]);  // (note, attack_velocity)
+      if(midi_in_buffer[at_offset+1] < 95 )
+       SYNTH_note_on_fast(midi_in_buffer[at_offset+1], midi_in_buffer[at_offset+2]);  // (note, attack_velocity)
+      else
+       SYS_debug(DEBUG_NORMAL,"MIDI_parse_one_MIDI_msg: invalid MIDI note value %d!",midi_in_buffer[at_offset+1]); 
       break;
 
     case 0x80:  // MIDI note off (3 bytes)
@@ -38,6 +41,10 @@
      SYS_debug(DEBUG_HIGH,"MIDI note off, CH%d, (%x)", midi_channel, midi_in_buffer[at_offset+1]);
      SYNTH_note_off(midi_in_buffer[at_offset+1]);
      break;
+
+    default:
+     SYS_debug(DEBUG_NORMAL,"MIDI_parse_one_MIDI_msg: unsupported MIDI message or garbage - discarding message buffer.");
+     return; // we have to discard entire buffer since don't know what could be the offset of the next message
 
    }
 

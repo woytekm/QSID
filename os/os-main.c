@@ -11,6 +11,7 @@
 #include "midi.h"
 #include "SID_writer.h"
 #include "SID_control.h"
+#include "task.h"
 
 
 //
@@ -21,9 +22,8 @@ void main(void)
 
  {
   
-  int i;
-
   SYS_debug(DEBUG_LOW,"Q-SID OS version %d.%d",QSID_OS_VERSION_MAJOR, QSID_OS_VERSION_MINOR);
+  
   // open i2c control files for voice and aux bus
 
   SYS_init();
@@ -43,8 +43,7 @@ void main(void)
    }
   else G_inventory_i2c_aux = 1;
 
-
- // detect voice boards - return address to voice inventory linked list
+ // detect voice boards 
 
  if(!SYS_detect_voices())
   {
@@ -54,32 +53,20 @@ void main(void)
  else
   SYS_debug(DEBUG_LOW,"Detected %d voices in this synth",G_inventory_voice_count);
 
+ // start system tasks
+
  SYS_debug(DEBUG_LOW,"Starting MIDI IN thread...");
- 
- pthread_t MIDI_thread;
- pthread_attr_t MIDI_thread_attr;
- pthread_attr_init(&MIDI_thread_attr);
- pthread_attr_setdetachstate(&MIDI_thread_attr, PTHREAD_CREATE_DETACHED);
-     
- if(pthread_create(&MIDI_thread, &MIDI_thread_attr, MIDI_IN_thread, NULL));
+ SYS_start_task("MIDI_in", MIDI_IN_thread, SCHED_RR, PRIO_VERYHIGH95); 
 
  SYS_debug(DEBUG_LOW,"Starting SID writer thread...");
-
- pthread_t SID_thread;
- pthread_attr_t SID_thread_attr;
- pthread_attr_init(&SID_thread_attr);
- pthread_attr_setdetachstate(&SID_thread_attr, PTHREAD_CREATE_DETACHED);
-
- if(pthread_create(&SID_thread, &SID_thread_attr, LIB_SID_tx_thread, NULL));
+ SYS_start_task("SID_tx", LIB_SID_tx_thread, SCHED_RR, PRIO_VERYHIGH94);
 
  SYS_debug(DEBUG_LOW,"Starting SID remote control thread...");
- pthread_t SID_remote_thread;
- pthread_attr_t SID_remote_thread_attr;
- pthread_attr_init(&SID_remote_thread_attr);
- pthread_attr_setdetachstate(&SID_remote_thread_attr, PTHREAD_CREATE_DETACHED);
+ SYS_start_task("SID_UDP_MIDI", LIB_SID_remote_control, SCHED_RR, PRIO_NORMAL50);
 
- if(pthread_create(&SID_remote_thread, &SID_remote_thread_attr, LIB_SID_remote_control, NULL));
+ // do nothing
 
+ int i;
 
  for(i = 1; i <= G_inventory_voice_count; i++)
   LIB_apply_demo_patch(G_voice_inventory[i].address);

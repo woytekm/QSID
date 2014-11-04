@@ -10,6 +10,7 @@
 #include "inventory.h"
 #include "voice.h"
 #include "midi.h"
+#include "task.h"
 
 
 void SYS_halt(void)
@@ -61,6 +62,7 @@ void SYS_init(void)
    G_inventory_i2c_voice = 0;
    G_inventory_i2c_aux = 0;
    G_playing_voices = 0;
+   G_QSID_task_count = 0;
 
    if(pipe(G_SID_writer_rx_pipe) == -1)
     {

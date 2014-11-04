@@ -43,6 +43,7 @@ All rights reserved.
 #include <sys/ioctl.h>
 #include <string.h>
 #include <stdint.h>
+#include <errno.h>
 
 #include "i2c_lib.h"
 #include "defs.h"
@@ -78,7 +79,7 @@ uint8_t LIB_set_i2c_register(int file,
     packets.msgs  = messages;
     packets.nmsgs = 1;
     if(ioctl(file, I2C_RDWR, &packets) < 0) {
-        SYS_debug(DEBUG_NORMAL,"I2C set failed.");
+        SYS_debug(DEBUG_NORMAL,"I2C set failed: %d",errno);
         return 1;
     }
 

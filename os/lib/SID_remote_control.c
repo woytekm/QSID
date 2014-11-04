@@ -5,6 +5,14 @@
 #include "inventory.h"
 #include "patch.h"
 
+//
+// this task should accept midi sysex packets sent through UDP and set patch/SID registers accordingly
+//
+// TODO:
+// - define catalog of sysex messages
+// - rewrite this to accept sysex encapsulated in UDP instead of SID_msg_t
+//
+
 void *LIB_SID_remote_control(void)
  {
 

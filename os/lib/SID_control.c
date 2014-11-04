@@ -59,6 +59,30 @@ void LIB_apply_demo_patch(uint8_t board_address)
 
  }
 
+// detune is calculated in SID register values, and it's base unit translates roughly to 1/10 of adjacent note interval (10 cents)
+// detune can be anything from -10 to 10, which means that maximal detune value should set oscillator to the adjacent note pitch (+/- 100 cents in 10 cent units)
+
+int16_t LIB_SID_oscillator_detune(uint8_t MIDI_note, int8_t osc_detune)
+ {
+
+  float note_interval;
+
+  if(!osc_detune) return;
+
+  if(osc_detune > 0 )
+    {
+       note_interval = G_MIDI_to_SID_reg[(MIDI_note + 1)] - G_MIDI_to_SID_reg[(MIDI_note)];
+       return  (note_interval / 10) * osc_detune;
+    }
+  else
+   {
+      note_interval = G_MIDI_to_SID_reg[(MIDI_note)] - G_MIDI_to_SID_reg[(MIDI_note - 1)];
+      return  (note_interval / 10) * osc_detune;
+   }
+
+ }
+
+
 
 void LIB_SID_note_on(uint8_t MIDI_note, uint8_t board_address)
  {
@@ -69,19 +93,19 @@ void LIB_SID_note_on(uint8_t MIDI_note, uint8_t board_address)
    
    // load pitch registers (+detune value from patch), and then trigger ADSR on all three oscillators at once
 
-   SID_OSC1_msg.reg_data = G_MIDI_to_SID_reg[MIDI_note+G_current_patch.octave_transposition] + SYNTH_SID_oscillator_detune(MIDI_note, G_current_patch.osc1_detune);
+   SID_OSC1_msg.reg_data = G_MIDI_to_SID_reg[MIDI_note+G_current_patch.octave_transposition] + LIB_SID_oscillator_detune(MIDI_note, G_current_patch.osc1_detune);
    SID_OSC1_msg.reg_addr = SID_OSC1_FREQ_LO;
    SID_OSC1_msg.SID_addr = board_address;
 
    write(G_SID_writer_rx_pipe[1], &SID_OSC1_msg, sizeof(SID_msg_t));
 
-   SID_OSC2_msg.reg_data = G_MIDI_to_SID_reg[MIDI_note+G_current_patch.octave_transposition] + SYNTH_SID_oscillator_detune(MIDI_note, G_current_patch.osc2_detune);
+   SID_OSC2_msg.reg_data = G_MIDI_to_SID_reg[MIDI_note+G_current_patch.octave_transposition] + LIB_SID_oscillator_detune(MIDI_note, G_current_patch.osc2_detune);
    SID_OSC2_msg.reg_addr = SID_OSC2_FREQ_LO;
    SID_OSC2_msg.SID_addr = board_address;
 
    write(G_SID_writer_rx_pipe[1], &SID_OSC2_msg, sizeof(SID_msg_t));
 
-   SID_OSC3_msg.reg_data = G_MIDI_to_SID_reg[MIDI_note+G_current_patch.octave_transposition] + SYNTH_SID_oscillator_detune(MIDI_note, G_current_patch.osc3_detune);
+   SID_OSC3_msg.reg_data = G_MIDI_to_SID_reg[MIDI_note+G_current_patch.octave_transposition] + LIB_SID_oscillator_detune(MIDI_note, G_current_patch.osc3_detune);
    SID_OSC3_msg.reg_addr = SID_OSC3_FREQ_LO;
    SID_OSC3_msg.SID_addr = board_address;
 
@@ -188,3 +212,5 @@ void LIB_SID_note_off(uint8_t board_address)
   write(G_SID_writer_rx_pipe[1], &SID_msg, sizeof(SID_msg_t));
 
  }
+
+
