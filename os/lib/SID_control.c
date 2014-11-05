@@ -57,7 +57,8 @@ void LIB_apply_demo_patch(uint8_t board_address)
    G_current_patch.osc1_on = 1;
    G_current_patch.osc2_on = 1;
    G_current_patch.osc3_on = 1;
-   
+ 
+   G_current_patch.LFO1_rate = 100;  
 
  }
 
@@ -215,4 +216,93 @@ void LIB_SID_note_off(uint8_t board_address)
 
  }
 
+
+void LIB_apply_LFO_CUTOFF(uint8_t board_address, uint16_t apply_value)
+ {
+  SID_msg_t SID_msg;
+  uint8_t cutoff_lo, cutoff_hi;
+
+  SID_msg.SID_addr = board_address;
+
+  cutoff_lo = apply_value & 7; // lowest three bits
+  cutoff_hi = apply_value  >> 3;  // shift out three bits
+
+  SID_msg.reg_addr = SID_FLT_CUTOFF_LO;
+  SID_msg.reg_data = cutoff_lo;
+
+  write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+  SID_msg.reg_addr = SID_FLT_CUTOFF_HI;
+  SID_msg.reg_data = cutoff_hi;
+
+  write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+ }
+
+void LIB_apply_LFO_PW1(uint8_t board_address, uint16_t apply_value)
+ {
+   SID_msg_t SID_msg;
+   uint8_t pw_lo, pw_hi;
+   uint8_t pw_mask = 255;
+
+   pw_lo = apply_value & pw_mask;
+   pw_hi = apply_value >> 8;
+
+   SID_msg.SID_addr = board_address;
+
+   SID_msg.reg_addr = SID_OSC1_PW_LO;
+   SID_msg.reg_data = pw_lo;
+   write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+   SID_msg.reg_addr = SID_OSC1_PW_HI;
+   SID_msg.reg_data = pw_hi;
+   write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+ }
+
+
+void LIB_apply_LFO_PW2(uint8_t board_address, uint16_t apply_value)
+ {
+   SID_msg_t SID_msg;
+   uint8_t pw_lo, pw_hi;
+   uint8_t pw_mask = 255;
+
+   pw_lo = apply_value & pw_mask;
+   pw_hi = apply_value >> 8;
+
+   SID_msg.SID_addr = board_address;
+
+   SID_msg.reg_addr = SID_OSC2_PW_LO;
+   SID_msg.reg_data = pw_lo;
+   write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+   SID_msg.reg_addr = SID_OSC2_PW_HI;
+   SID_msg.reg_data = pw_hi;
+   write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+ }
+
+void LIB_apply_LFO_PW3(uint8_t board_address, uint16_t apply_value)
+ {
+   SID_msg_t SID_msg;
+   uint8_t pw_lo, pw_hi;
+   uint8_t pw_mask = 255;
+
+   pw_lo = apply_value & pw_mask;
+   pw_hi = apply_value >> 8;
+
+   SID_msg.SID_addr = board_address;
+
+   SID_msg.reg_addr = SID_OSC3_PW_LO;
+   SID_msg.reg_data = pw_lo;
+   write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+   SID_msg.reg_addr = SID_OSC3_PW_HI;
+   SID_msg.reg_data = pw_hi;
+   write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+ }
+
+void LIB_apply_LFO_PW_ALL(uint8_t board_address, uint16_t apply_value)
+ {
+  LIB_apply_LFO_PW1(board_address, apply_value);
+  LIB_apply_LFO_PW2(board_address, apply_value);
+  LIB_apply_LFO_PW3(board_address, apply_value);
+ }
 

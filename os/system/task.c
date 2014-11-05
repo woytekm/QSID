@@ -35,7 +35,7 @@ pthread_t SYS_start_task(uint8_t task_slot_id, void (*task_function)(), int sche
 
    if(pipe(G_QSID_tasks[task_slot_id].input_pipe) == -1)
      SYS_debug(DEBUG_NORMAL,"SYS_start_task: warning: cannot create create input pipe for task %x",task_function);
- 
+   
    return new_task;
 
  }

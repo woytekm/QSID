@@ -24,6 +24,8 @@ void *LIB_SID_remote_control(void)
    socklen_t len;
    SID_msg_t SID_control_packet;
 
+   usleep(100);
+
    sockfd=socket(AF_INET,SOCK_DGRAM,0);
 
    bzero(&servaddr,sizeof(servaddr));

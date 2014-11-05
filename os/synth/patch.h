@@ -81,8 +81,24 @@ typedef struct _patch_data_t {
   uint8_t  filter_reso;
   uint8_t  filter_mode;
   uint8_t  filter_ext;
+
+
+  uint8_t  LFO1_state;  // 0 - off, 1 - on
+  uint8_t  LFO1_rate;   // 0 - 100
+  uint8_t  LFO1_shape;  // waveform constants defined in lfo.h
+  uint8_t  LFO1_depth;  // 2,4,6,8,10,12
+  uint8_t  LFO1_key_sync; // 0 - off, 1 - on
+  uint8_t  LFO1_routing;  // LFO destination constants defined in lfo.h
+
+  uint8_t  LFO2_state;
+  uint8_t  LFO2_rate;
+  uint8_t  LFO2_shape;
+  uint8_t  LFO2_depth;
+  uint8_t  LFO2_key_sync;
+  uint8_t  LFO2_routing;
+
   uint8_t  volume;
-  int8_t  octave_transposition;
+  int8_t   octave_transposition;
 
 } patch_data_t;
 

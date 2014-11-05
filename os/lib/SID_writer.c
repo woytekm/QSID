@@ -13,6 +13,8 @@ void LIB_SID_tx_thread(void) // SID writer thread
   uint16_t bit_mask = 255;
   uint8_t msg_byte_lo, msg_byte_hi;
 
+  usleep(100); // put the thread to sleep for some time - pipe descriptor is getting ready...
+
   SID_message_pipe = G_QSID_tasks[TASK_SID_WRITER].input_pipe[0];
 
   fds.fd = SID_message_pipe;

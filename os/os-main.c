@@ -65,15 +65,21 @@ void main(void)
  SYS_debug(DEBUG_LOW,"Starting SID remote control thread...");
  SYS_start_task(TASK_UDP_MIDI_IN, LIB_SID_remote_control, SCHED_RR, PRIO_NORMAL50);
 
- SYS_debug(DEBUG_LOW,"Starting LFO1...");
- SYS_start_task(TASK_LFO1, SYNTH_lfo1, SCHED_IDLE, 0);
-
- // do nothing
+ // init patch settings before starting LFO's
 
  int i;
 
  for(i = 1; i <= G_inventory_voice_count; i++)
   LIB_apply_demo_patch(G_voice_inventory[i].address);
+
+ // start LFO tasks
+
+ SYS_debug(DEBUG_LOW,"Starting LFO1...");
+ SYS_start_task(TASK_LFO1, SYNTH_LFO1, SCHED_IDLE, 0);
+
+ // do nothing
+
+ SYS_debug(DEBUG_LOW,"QSID ready.");
 
  while(1)
   { sleep(1); }

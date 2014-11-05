@@ -32,7 +32,12 @@
 #define ROW12 14
 #define ROW13 15
 
-#define STATUS_LINE 19
+#define ROW16 18
+#define ROW17 19
+#define ROW18 20
+#define ROW19 21
+
+#define STATUS_LINE 24
 
 #define PANEL_WIDTH 95
 #define PANEL_HEIGHT 20
@@ -75,6 +80,11 @@ void refresh_panel_data(patch_data_t *patch)
    mvprintw(ROW12,COLUMN2,"s -  sustain + S (%d)  ",patch->osc1_adsr_sustain);
    mvprintw(ROW13,COLUMN2,"r -  release + R (%d)  ",patch->osc1_adsr_release);
 
+   mvprintw(ROW16,COLUMN1,"i toggle shape   (%d)  ",patch->LFO1_shape);
+   mvprintw(ROW17,COLUMN1,"o toggle dst     (%d)  ",patch->LFO1_routing);
+   mvprintw(ROW18,COLUMN1,"p - rate + P     (%d)  ",patch->LFO1_rate);
+   mvprintw(ROW19,COLUMN1,"[ - depth + {    (%d)  ",patch->LFO1_depth);
+
    mvprintw(ROW10,COLUMN3,"< - main volume + > (%d)  ",patch->volume);
 
    refresh();
@@ -92,9 +102,11 @@ void draw_panel()
            "=============================================================================================");
   mvprintw(PANEL_UPPER_LEFT_CORNER_Y+10, PANEL_UPPER_LEFT_CORNER_X,
            "===== Filter ======================== AMP ADSR ====================== Volume ================");
-  mvprintw(PANEL_UPPER_LEFT_CORNER_Y+16, PANEL_UPPER_LEFT_CORNER_X,
+  mvprintw(PANEL_UPPER_LEFT_CORNER_Y+15, PANEL_UPPER_LEFT_CORNER_X,
            "=============================================================================================");
-  mvprintw(PANEL_UPPER_LEFT_CORNER_Y+17, PANEL_UPPER_LEFT_CORNER_X,
+  mvprintw(PANEL_UPPER_LEFT_CORNER_Y+16, PANEL_UPPER_LEFT_CORNER_X,
+           "===== LFO1 ============================= LFO2 ===============================================");
+  mvprintw(PANEL_UPPER_LEFT_CORNER_Y+22, PANEL_UPPER_LEFT_CORNER_X,
            "========================================= d - load patch === z - save patch === x - quit ====");
   refresh();
  }
@@ -582,6 +594,37 @@ int main(int argc, char**argv)
         send_to_QSID(sockfd, &SID_control_packet, &servaddr);
 
        }
+
+      if(input == 'y')
+       {
+
+        if(current_patch.osc2_detune > -10)
+         current_patch.osc2_detune--;
+
+        SID_control_packet.reg_addr = SID_OSC2_DETUNE;
+        SID_control_packet.reg_data = current_patch.osc2_detune;
+
+        mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
+        send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+
+       }
+
+      if(input == 'Y')
+       {
+
+        if(current_patch.osc2_detune < 10)
+         current_patch.osc2_detune++;
+
+        SID_control_packet.reg_addr = SID_OSC2_DETUNE;
+        SID_control_packet.reg_data = current_patch.osc2_detune;
+
+        mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
+        send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+
+       }
+
 
       if(input == '1')
        {

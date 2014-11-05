@@ -14,6 +14,8 @@ void MIDI_IN_thread(void)
    unsigned char midi_message_buffer[1024];
    struct pollfd fds;
  
+   usleep(100);
+
    G_MIDI_fd = MIDI_init();
 
    if( G_MIDI_fd == -1 )
