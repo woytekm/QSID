@@ -6,25 +6,21 @@
 #include "patch.h"
 #include "task.h"
 
-//
-// this task should accept midi sysex packets sent through UDP and set patch/SID registers accordingly
-//
-// TODO:
-// - define catalog of sysex messages
-// - rewrite this to accept sysex encapsulated in UDP instead of SID_msg_t
-//
+/* this task should accept midi sysex packets sent through UDP and set patch/SID registers accordingly  
+ TODO:                                                                                                
+ - define catalog of sysex messages                                                                   
+ - rewrite this to accept sysex encapsulated in UDP instead of SID_msg_t                              
+*/
 
 void *LIB_SID_remote_control(void)
  {
 
-   // UDP receiver code taken from: http://www.cs.ucsb.edu/~almeroth/classes/W01.176B/hw2/examples/udp-server.c
+   /* UDP receiver code taken from: http://www.cs.ucsb.edu/~almeroth/classes/W01.176B/hw2/examples/udp-server.c  */
 
    int sockfd,n,i,is_virtual;
    struct sockaddr_in servaddr,cliaddr;
    socklen_t len;
    SID_msg_t SID_control_packet;
-
-   usleep(100);
 
    sockfd=socket(AF_INET,SOCK_DGRAM,0);
 
@@ -92,6 +88,28 @@ void *LIB_SID_remote_control(void)
           is_virtual = 1;
           break;
 
+         case QSID_LFO1_RATE:
+          G_current_patch.LFO1_rate = SID_control_packet.reg_data;
+          is_virtual = 1;
+          break;
+
+         case QSID_LFO1_SHAPE:
+          G_current_patch.LFO1_shape = SID_control_packet.reg_data;
+          write(G_QSID_tasks[TASK_LFO1].input_pipe[1], SID_control_packet.reg_data, sizeof(SID_control_packet.reg_data));
+          is_virtual = 1;
+          break;
+
+         case QSID_LFO1_DEPTH:
+          G_current_patch.LFO1_depth = SID_control_packet.reg_data;
+          is_virtual = 1;
+          break;
+
+         case QSID_LFO1_ROUTE:
+          G_current_patch.LFO1_routing = SID_control_packet.reg_data;
+          write(G_QSID_tasks[TASK_LFO1].input_pipe[1], SID_control_packet.reg_data, sizeof(SID_control_packet.reg_data));
+          is_virtual = 1;
+          break;
+
        }
  
       if(!is_virtual)
@@ -102,7 +120,7 @@ void *LIB_SID_remote_control(void)
           write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_control_packet, sizeof(SID_msg_t));
          }
 
-      else is_virtual = 0;
+      else is_virtual = 0;  /* clear the flag  */
      
     }
 

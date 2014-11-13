@@ -18,6 +18,9 @@ pthread_t SYS_start_task(uint8_t task_slot_id, void (*task_function)(), int sche
    pthread_attr_init(&new_task_attr);
    pthread_attr_setdetachstate(&new_task_attr, PTHREAD_CREATE_DETACHED);
 
+   if(pipe(G_QSID_tasks[task_slot_id].input_pipe) == -1)
+     SYS_debug(DEBUG_NORMAL,"SYS_start_task: warning: cannot create create input pipe for task %x",task_function);
+
    if(pthread_create(&new_task, &new_task_attr, task_function, NULL))
     {
      SYS_debug(DEBUG_NORMAL,"SYS_start_task: cannot start task %x",task_function);
@@ -33,9 +36,6 @@ pthread_t SYS_start_task(uint8_t task_slot_id, void (*task_function)(), int sche
 
    G_QSID_tasks[task_slot_id].task_id = new_task;
 
-   if(pipe(G_QSID_tasks[task_slot_id].input_pipe) == -1)
-     SYS_debug(DEBUG_NORMAL,"SYS_start_task: warning: cannot create create input pipe for task %x",task_function);
-   
    return new_task;
 
  }
