@@ -1,7 +1,6 @@
 #define LFO_BASE_TICK 1000
 
-#define LFO_CONTROL_LFO_ON 1
-#define LFO_CONTROL_LFO_OFF 2
+#define LFO_OFF 0
 
 #define LFO_ROUTING_CUTOFF 1
 #define LFO_ROUTING_PW_1 2

@@ -9,6 +9,7 @@
 #include "SID_writer.h"
 #include "SID.h"
 #include "patch.h"
+#include "lfo.h"
 
 #include <ncurses.h>
 
@@ -175,6 +176,11 @@ void init_patch(patch_data_t *blank_patch)
    blank_patch->filter_reso = 0;
   
    blank_patch->filter_mode = FILTER_OFF;
+
+   blank_patch->LFO1_rate = 1;
+   blank_patch->LFO1_shape = LFO_SHAPE_TRIANGLE;
+   blank_patch->LFO1_depth = 2;
+   blank_patch->LFO1_routing = LFO_OFF;
 
    blank_patch->volume = 8;
 
@@ -373,6 +379,23 @@ void remote_apply_patch(patch_data_t *new_patch, int sock, struct sockaddr_in *s
     SID_control_packet.reg_addr = SID_FLT_MODE_VOL;
     SID_control_packet.reg_data = mode_vol_reg;
     send_to_QSID(sock, &SID_control_packet, srv_addr);   
+
+    SID_control_packet.reg_addr = QSID_LFO1_RATE;
+    SID_control_packet.reg_data = new_patch->LFO1_rate;
+    send_to_QSID(sock, &SID_control_packet, srv_addr);
+
+    SID_control_packet.reg_addr = QSID_LFO1_SHAPE;
+    SID_control_packet.reg_data = new_patch->LFO1_shape;
+    send_to_QSID(sock, &SID_control_packet, srv_addr);
+
+    SID_control_packet.reg_addr = QSID_LFO1_DEPTH;
+    SID_control_packet.reg_data = new_patch->LFO1_depth;  
+    send_to_QSID(sock, &SID_control_packet, srv_addr);
+
+    SID_control_packet.reg_addr = QSID_LFO1_ROUTE;
+    SID_control_packet.reg_data = new_patch->LFO1_routing;
+    send_to_QSID(sock, &SID_control_packet, srv_addr);
+
  
  }
 
@@ -411,7 +434,7 @@ uint8_t open_patch(patch_data_t *new_patch)
 
 
 
-void update_control_indexes(patch_data_t *patch, uint8_t *osc1_wave_idx, uint8_t *osc2_wave_idx, uint8_t *osc3_wave_idx, uint8_t *filter_idx)
+void update_control_indexes(patch_data_t *patch, uint8_t *osc1_wave_idx, uint8_t *osc2_wave_idx, uint8_t *osc3_wave_idx, uint8_t *filter_idx, uint8_t *lfo1_shape_idx, uint8_t *lfo1_route_idx, uint8_t *lfo2_shape_idx, uint8_t *lfo2_route_idx)
  {
 
   switch (patch->osc1_wave)
@@ -431,7 +454,6 @@ void update_control_indexes(patch_data_t *patch, uint8_t *osc1_wave_idx, uint8_t
     case WAVEFORM_TRIANGLE:
      *osc1_wave_idx = 3;
      break;
-
    }
 
   switch (patch->osc2_wave)
@@ -491,6 +513,141 @@ void update_control_indexes(patch_data_t *patch, uint8_t *osc1_wave_idx, uint8_t
      break;
    }
 
+  switch (patch->LFO1_shape)
+   {
+    case LFO_SHAPE_TRIANGLE:
+     *lfo1_shape_idx = 0;
+     break;
+
+    case LFO_SHAPE_SAWTOOTH:
+     *lfo1_shape_idx = 1;
+     break;
+
+    case LFO_SHAPE_SQUARE:
+     *lfo1_shape_idx = 2;
+     break;
+
+    case LFO_SHAPE_SH:
+     *lfo1_shape_idx = 3;
+     break;
+   }
+
+  switch (patch->LFO1_routing)
+   {
+    case LFO_OFF:
+     *lfo1_route_idx = 0;
+     break;
+
+    case LFO_ROUTING_CUTOFF:
+     *lfo1_route_idx = 1;
+     break;
+
+    case LFO_ROUTING_PW_1:
+     *lfo1_route_idx = 2;
+     break;
+
+    case LFO_ROUTING_PW_2:
+     *lfo1_route_idx = 3;
+     break;
+
+    case LFO_ROUTING_PW_3:
+     *lfo1_route_idx = 4;
+     break;
+
+    case LFO_ROUTING_PW_ALL:
+     *lfo1_route_idx = 5;
+     break;
+
+    case LFO_ROUTING_DETUNE_1:
+     *lfo1_route_idx = 6;
+     break;
+
+    case LFO_ROUTING_DETUNE_2:
+     *lfo1_route_idx = 7;
+     break;
+
+    case LFO_ROUTING_DETUNE_3:
+     *lfo1_route_idx = 8;
+     break;
+
+    case LFO_ROUTING_DETUNE_ALL:
+     *lfo1_route_idx = 9;
+     break;
+
+    case LFO_ROUTING_MAIN_VOLUME:
+     *lfo1_route_idx = 10;
+     break;
+
+   }
+
+
+  switch (patch->LFO2_shape)
+   {
+    case LFO_SHAPE_TRIANGLE:
+     *lfo2_shape_idx = 0;
+     break;
+
+    case LFO_SHAPE_SAWTOOTH:
+     *lfo2_shape_idx = 1;
+     break;
+
+    case LFO_SHAPE_SQUARE:
+     *lfo2_shape_idx = 2;
+     break;
+
+    case LFO_SHAPE_SH:
+     *lfo2_shape_idx = 3;
+     break;
+   }
+
+  switch (patch->LFO2_routing)
+   {
+    case LFO_OFF:
+     *lfo2_route_idx = 0;
+     break;
+
+    case LFO_ROUTING_CUTOFF:
+     *lfo2_route_idx = 1;
+     break;
+
+    case LFO_ROUTING_PW_1:
+     *lfo2_route_idx = 2;
+     break;
+
+    case LFO_ROUTING_PW_2:
+     *lfo2_route_idx = 3;
+     break;
+
+    case LFO_ROUTING_PW_3:
+     *lfo2_route_idx = 4;
+     break;
+
+    case LFO_ROUTING_PW_ALL:
+     *lfo2_route_idx = 5;
+     break;
+
+    case LFO_ROUTING_DETUNE_1:
+     *lfo2_route_idx = 6;
+     break;
+
+    case LFO_ROUTING_DETUNE_2:
+     *lfo2_route_idx = 7;
+     break;
+
+    case LFO_ROUTING_DETUNE_3:
+     *lfo2_route_idx = 8;
+     break;
+
+    case LFO_ROUTING_DETUNE_ALL:
+     *lfo2_route_idx = 9;
+     break;
+
+    case LFO_ROUTING_MAIN_VOLUME:
+     *lfo2_route_idx = 10;
+     break;
+
+   }
+
  }
 
 
@@ -502,8 +659,12 @@ int main(int argc, char**argv)
    uint8_t i, input, cutoff_lo, cutoff_hi, pw_lo, pw_hi, res_filt_reg, mode_vol_reg, control_reg;
    uint8_t waveforms[4] = { WAVEFORM_NOISE, WAVEFORM_PULSE, WAVEFORM_SAWTOOTH, WAVEFORM_TRIANGLE };
    uint8_t filter_modes[4] = { FILTER_OFF, FILTER_HIGHPASS, FILTER_BANDPASS, FILTER_LOWPASS };
+   uint8_t lfo_shapes[4] = { LFO_SHAPE_TRIANGLE, LFO_SHAPE_SAWTOOTH, LFO_SHAPE_SQUARE, LFO_SHAPE_SH };
+   uint8_t lfo_routes[11] = { LFO_OFF, LFO_ROUTING_CUTOFF, LFO_ROUTING_PW_1, LFO_ROUTING_PW_2, LFO_ROUTING_PW_3, LFO_ROUTING_PW_ALL,
+                              LFO_ROUTING_DETUNE_1, LFO_ROUTING_DETUNE_2, LFO_ROUTING_DETUNE_3, LFO_ROUTING_DETUNE_ALL, LFO_ROUTING_MAIN_VOLUME };
    patch_data_t current_patch;
-   uint8_t osc1_waveform_idx,  osc2_waveform_idx, osc3_waveform_idx, filter_mode_idx;
+   uint8_t osc1_waveform_idx,  osc2_waveform_idx, osc3_waveform_idx, filter_mode_idx, 
+           lfo1_shape_idx, lfo1_route_idx, lfo2_shape_idx, lfo2_route_idx;
    uint16_t row, col;
    uint16_t pw_mask = 255;
 
@@ -547,7 +708,7 @@ int main(int argc, char**argv)
 
    remote_apply_patch(&current_patch, sockfd, &servaddr);
 
-   update_control_indexes(&current_patch, &osc1_waveform_idx, &osc2_waveform_idx, &osc3_waveform_idx, &filter_mode_idx);
+   update_control_indexes(&current_patch, &osc1_waveform_idx, &osc2_waveform_idx, &osc3_waveform_idx, &filter_mode_idx, &lfo1_shape_idx, &lfo1_route_idx, &lfo2_shape_idx, &lfo2_route_idx);
 
    draw_panel();
 
@@ -1409,6 +1570,89 @@ int main(int argc, char**argv)
 
       }
 
+     if(input == 'i')
+      {
+       if(lfo1_shape_idx == 3)
+         lfo1_shape_idx = 0;
+       else lfo1_shape_idx++;
+     
+       current_patch.LFO1_shape = lfo_shapes[lfo1_shape_idx];
+       SID_control_packet.reg_addr = QSID_LFO1_SHAPE;
+       SID_control_packet.reg_data = current_patch.LFO1_shape;
+
+       mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
+       send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+      }
+
+
+     if(input == 'o')
+      {
+       if(lfo1_route_idx == 10)
+         lfo1_route_idx = 0;
+       else lfo1_route_idx++;
+
+       current_patch.LFO1_routing = lfo_routes[lfo1_route_idx];
+       SID_control_packet.reg_addr = QSID_LFO1_ROUTE;
+       SID_control_packet.reg_data = current_patch.LFO1_routing;
+
+       mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
+       send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+      }
+
+    if(input == 'p')
+      {
+       if(current_patch.LFO1_rate < 100)
+        current_patch.LFO1_rate++;
+
+       SID_control_packet.reg_addr = QSID_LFO1_RATE;
+       SID_control_packet.reg_data = current_patch.LFO1_rate;
+
+       mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
+       send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+      }
+
+    if(input == 'P')
+      {
+       if(current_patch.LFO1_rate > 1)
+        current_patch.LFO1_rate--;
+
+       SID_control_packet.reg_addr = QSID_LFO1_RATE;
+       SID_control_packet.reg_data = current_patch.LFO1_rate;
+
+       mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
+       send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+      }
+
+    if(input == '[')
+      {
+       if(current_patch.LFO1_depth < 1024)
+        current_patch.LFO1_depth += 2;
+
+       SID_control_packet.reg_addr = QSID_LFO1_DEPTH;
+       SID_control_packet.reg_data = current_patch.LFO1_depth;
+
+       mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
+       send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+      }
+
+    if(input == '{')
+      {
+       if(current_patch.LFO1_depth > 0)
+        current_patch.LFO1_depth -= 2;
+
+       SID_control_packet.reg_addr = QSID_LFO1_DEPTH;
+       SID_control_packet.reg_data = current_patch.LFO1_depth;
+
+       mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
+
+       send_to_QSID(sockfd, &SID_control_packet, &servaddr);
+
+      }
 
      if(input == 'z')
        save_patch(&current_patch);
@@ -1417,11 +1661,12 @@ int main(int argc, char**argv)
       {
        open_patch(&current_patch); 
        remote_apply_patch(&current_patch, sockfd, &servaddr);
-       update_control_indexes(&current_patch, &osc1_waveform_idx, &osc2_waveform_idx, &osc3_waveform_idx, &filter_mode_idx);
+       update_control_indexes(&current_patch, &osc1_waveform_idx, &osc2_waveform_idx, &osc3_waveform_idx, &filter_mode_idx, &lfo1_shape_idx, &lfo1_route_idx, &lfo2_shape_idx, &lfo2_route_idx);
       }
 
      refresh_panel_data(&current_patch);
 
    }
 }
+
 

@@ -60,6 +60,8 @@ void LIB_apply_demo_patch(uint8_t board_address)
  
    G_current_patch.LFO1_rate = 100;  
 
+   G_current_patch.filter_cutoff = 800;
+
  }
 
 // detune is calculated in SID register values, and it's base unit translates roughly to 1/10 of adjacent note interval (10 cents)

@@ -37,7 +37,7 @@ void *LIB_SID_remote_control(void)
     {
       SYS_debug(DEBUG_HIGH,"LIB_SID_remote_control: waiting for data...");
       n = recvfrom(sockfd,&SID_control_packet,sizeof(SID_msg_t),0,(struct sockaddr *)&cliaddr,&len);
-      SYS_debug(DEBUG_HIGH,"LIB_SID_remote_control: received following data: %x, %x",SID_control_packet.reg_addr, SID_control_packet.reg_data); 
+      SYS_debug(DEBUG_HIGH,"LIB_SID_remote_control: received following data: 0x%X, 0x%X",SID_control_packet.reg_addr, SID_control_packet.reg_data); 
 
 
       if(SID_control_packet.reg_addr >= 32)
@@ -95,7 +95,7 @@ void *LIB_SID_remote_control(void)
 
          case QSID_LFO1_SHAPE:
           G_current_patch.LFO1_shape = SID_control_packet.reg_data;
-          write(G_QSID_tasks[TASK_LFO1].input_pipe[1], SID_control_packet.reg_data, sizeof(SID_control_packet.reg_data));
+          write(G_QSID_tasks[TASK_LFO1].input_pipe[1], &SID_control_packet.reg_data, sizeof(uint8_t));
           is_virtual = 1;
           break;
 
@@ -106,7 +106,9 @@ void *LIB_SID_remote_control(void)
 
          case QSID_LFO1_ROUTE:
           G_current_patch.LFO1_routing = SID_control_packet.reg_data;
-          write(G_QSID_tasks[TASK_LFO1].input_pipe[1], SID_control_packet.reg_data, sizeof(SID_control_packet.reg_data));
+          int written;
+          written = write(G_QSID_tasks[TASK_LFO1].input_pipe[1], &SID_control_packet.reg_data, sizeof(uint8_t));
+          SYS_debug(DEBUG_HIGH,"LFO1_route message from SID remote control - write returned %d, (%d)",written, errno);
           is_virtual = 1;
           break;
 

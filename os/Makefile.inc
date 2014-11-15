@@ -2,5 +2,5 @@
 
 MAKE     = make
 CC       = gcc
-CFLAGS   = -g -O2 -DQSID_RPI -Wall -Wno-comment -pedantic
+CFLAGS   = -O2 -DQSID_RPI -Wall -Wno-comment -pedantic
 

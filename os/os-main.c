@@ -22,7 +22,9 @@
 void main(void)
 
  {
-  
+ 
+  int voice_counter;
+
   SYS_debug(DEBUG_LOW,"Q-SID OS version %d.%d",QSID_OS_VERSION_MAJOR, QSID_OS_VERSION_MINOR);
   
   // open i2c control files for voice and aux bus
@@ -67,10 +69,8 @@ void main(void)
 
  // init patch settings before starting LFO's
 
- int i;
-
- for(i = 1; i <= G_inventory_voice_count; i++)
-  LIB_apply_demo_patch(G_voice_inventory[i].address);
+ for(voice_counter = 1; voice_counter <= G_inventory_voice_count; voice_counter++)
+  LIB_apply_demo_patch(G_voice_inventory[voice_counter].address);
 
  // start LFO tasks
 
