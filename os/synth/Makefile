@@ -1,6 +1,6 @@
 include ../Makefile.inc
 
-INCLUDES= -I ../config -I ../lib -I ../midi -I ../system
+INCLUDES= -I ../config -I ../lib -I ../midi -I ../system -I ../lib/bcm2835/src
 
 all:
 	$(CC) $(CFLAGS) polyphony.c -c  $(INCLUDES)

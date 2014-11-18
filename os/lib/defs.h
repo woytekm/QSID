@@ -18,3 +18,6 @@
 
 #define QSID_OS_SID_REMOTE_CONTROL_PORT 6677
 
+int8_t G_i2c_voice_bus;
+int8_t G_i2c_aux_bus;
+

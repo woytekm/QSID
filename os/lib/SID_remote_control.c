@@ -106,9 +106,7 @@ void *LIB_SID_remote_control(void)
 
          case QSID_LFO1_ROUTE:
           G_current_patch.LFO1_routing = SID_control_packet.reg_data;
-          int written;
-          written = write(G_QSID_tasks[TASK_LFO1].input_pipe[1], &SID_control_packet.reg_data, sizeof(uint8_t));
-          SYS_debug(DEBUG_HIGH,"LFO1_route message from SID remote control - write returned %d, (%d)",written, errno);
+          write(G_QSID_tasks[TASK_LFO1].input_pipe[1], &SID_control_packet.reg_data, sizeof(uint8_t));
           is_virtual = 1;
           break;
 

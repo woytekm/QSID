@@ -1,6 +1,6 @@
 include ../Makefile.inc
 
-INCLUDES= -I ../config -I ../lib -I ../midi -I ../synth
+INCLUDES= -I ../config -I ../lib -I ../midi -I ../synth -I ../lib/bcm2835/src
 
 all:
 	$(CC) $(CFLAGS) detect.c -c  $(INCLUDES)

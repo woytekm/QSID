@@ -10,7 +10,6 @@
 
 #include "qsid-config.h"
 #include "SID.h"
-#include "i2c.h"
 #include "MCP23017.h"
 
 

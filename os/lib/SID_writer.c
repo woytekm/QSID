@@ -1,7 +1,6 @@
 #include "common.h"
 #include "defs.h"
 #include "SID_writer.h"
-#include "i2c.h"
 #include "task.h"
 
 void LIB_SID_tx_thread(void) // SID writer thread

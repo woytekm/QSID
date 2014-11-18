@@ -2,13 +2,13 @@
 
 include Makefile.inc
 
-INCLUDES     = -I config -I lib -I midi -I synth -I system
+INCLUDES     = -I config -I lib -I midi -I synth -I system 
 DIRS         = control display lib midi synth system 
 MYLIBS       = libqsid-i2c.a libqsid-system.a libqsid-SID.a libqsid-MIDI.a libqsid-synth.a
-MYLIBDIRS    = -Llib -Lmidi -Lsynth -Lsystem -Lcontrol -Ldisplay
+MYLIBDIRS    = -Llib -Lmidi -Lsynth -Lsystem -Lcontrol -Ldisplay -Llib/bcm2835/src
 SYSLIBS      = 
 SYSLIBDIRS   =
-LDOPTS       = -lqsid-system -lqsid-MIDI -lqsid-SID -lqsid-synth -lqsid-SID -lqsid-i2c -lpthread
+LDOPTS       = -lqsid-system -lqsid-MIDI -lqsid-SID -lqsid-synth -lqsid-SID -lqsid-i2c -lpthread -lbcm2835
 OSEXE        = qsid-os
 
 

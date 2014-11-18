@@ -48,6 +48,82 @@ All rights reserved.
 #include "i2c_lib.h"
 #include "defs.h"
 
+#ifdef I2C_BCM2835
+
+#include "bcm2835.h"
+
+#define RPI_I2C_BUS0 0
+#define RPI_I2C_BUS1 1
+#define RPI_QSID_I2C_CLOCK 1000000
+
+
+int8_t LIB_i2c_bcm2835_init(void)
+ {
+
+  if(!bcm2835_init())
+   {
+    SYS_debug(DEBUG_NORMAL,"LIB_i2c_bcm2835_init: fatal: cannot initialize BCM2835 library!");
+    return 0;
+   }
+
+  bcm2835_i2c_begin(RPI_I2C_BUS0);
+  bcm2835_i2c_begin(RPI_I2C_BUS1);
+
+  bcm2835_i2c_set_baudrate(RPI_I2C_BUS0, RPI_QSID_I2C_CLOCK);
+  bcm2835_i2c_set_baudrate(RPI_I2C_BUS1, RPI_QSID_I2C_CLOCK);
+
+  return 1;
+
+ }
+
+
+uint8_t LIB_set_i2c_register(int bus, uint8_t addr, uint8_t reg, uint8_t value)
+ {
+
+  uint8_t writebuf[2], reason;
+  uint32_t wrote;
+
+  writebuf[0] = reg;
+  writebuf[1] = value;
+
+  bcm2835_i2c_setSlaveAddress(bus, addr);
+
+  reason = bcm2835_i2c_write(bus, &writebuf, 2, &wrote);
+
+  if(reason == BCM2835_I2C_REASON_OK)
+   return 0;
+  else
+   {
+     SYS_debug(DEBUG_NORMAL,"LIB_set_i2c_register (BCM2835): register write failed (%d)",reason);
+     return reason;
+   }
+
+ }
+
+
+uint8_t LIB_get_i2c_register(int bus, unsigned char addr, unsigned char reg, uint8_t *val)
+ {
+
+  int32_t read;
+  uint8_t reason;
+  
+  bcm2835_i2c_setSlaveAddress(bus, addr);
+
+  reason = bcm2835_i2c_read_register_rs(bus, &reg, val, 1, &read);
+
+  if(reason == BCM2835_I2C_REASON_OK)
+   return 0;
+  else 
+   {
+     SYS_debug(DEBUG_NORMAL,"LIB_get_i2c_register (BCM2835): register read failed (%d)",reason);
+     return reason;
+   }
+
+ }
+
+
+#else
+
 uint8_t LIB_set_i2c_register(int file,
                             unsigned char addr,
                             unsigned char reg,
@@ -127,5 +203,5 @@ uint8_t LIB_get_i2c_register(int file,
     return 0;
 }
 
-
+#endif
 

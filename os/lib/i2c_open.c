@@ -4,11 +4,11 @@
 // I2C I/O
 //
 
+#ifndef I2C_BCM2835
+
 #include "common.h"
 #include "defs.h"
 #include "qsid-config.h"
-#include "i2c.h"
-
 
 int8_t LIB_i2c_open(char *i2c_file_path)
  {
@@ -23,4 +23,5 @@ int8_t LIB_i2c_open(char *i2c_file_path)
 
  }
 
+#endif
 
