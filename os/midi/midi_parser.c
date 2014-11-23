@@ -108,8 +108,6 @@
 
      next_message_offset = at_offset + sysex_len;
 
-     if(midi_channel != G_QSID_live_settings.MIDI_receive_channel)
-      break;
      MIDI_parse_sysex(midi_in_buffer[at_offset], sysex_len);
      break;
 
