@@ -103,18 +103,18 @@ void SYNTH_LFO1(void)
       {
        case LFO_SHAPE_TRIANGLE:
         mod_value += LFO_step;
-        //printf("step: %d, mod value: %d\n",LFO_step, mod_value);
+        /* printf("step: %d, mod value: %d\n",LFO_step, mod_value); */
         if((mod_value >= ((G_current_patch.LFO1_depth*LFO_steps[current_destination])/2)))
            {
             falling_edge = -1;
             LFO_step = LFO_steps[current_destination] * -1;
-            //printf("mod_value reached upper range, changing step to negative %d\n",LFO_step);
+            /* printf("mod_value reached upper range, changing step to negative %d\n",LFO_step); */
            }
         else if((mod_value <= ((G_current_patch.LFO1_depth*LFO_steps[current_destination])/2) * -1 ))
            {
             falling_edge = 1;
             LFO_step = LFO_steps[current_destination];
-            //printf("mod_value reached lower range, changing step to positive %d\n",LFO_step);
+            /* printf("mod_value reached lower range, changing step to positive %d\n",LFO_step); */
            }
         break;
 
@@ -125,15 +125,15 @@ void SYNTH_LFO1(void)
         break;
       }
 
-    //printf("LFO mod value: %d\n",mod_value);
-    //printf("G_current_patch.LFO1_depth * falling_edge: %d\n",G_current_patch.LFO1_depth * falling_edge);
+    /* printf("LFO mod value: %d\n",mod_value); */
+    /* printf("G_current_patch.LFO1_depth * falling_edge: %d\n",G_current_patch.LFO1_depth * falling_edge); */
 
     switch(current_destination)
      {
         case LFO_ROUTING_CUTOFF:
         apply_value = G_current_patch.filter_cutoff + mod_value + (G_current_patch.LFO1_depth * falling_edge);
 
-        // clip the value if it went out of range
+        /* clip the value if it went out of range */
         if(apply_value < 0) apply_value = 0;
         else if(apply_value > LFO_ranges[current_destination]) 
          apply_value = LFO_ranges[current_destination];
@@ -201,7 +201,7 @@ void SYNTH_LFO1(void)
         break;
      }
 
-    //printf("LFO apply value: %d\n",apply_value);
+    /* printf("LFO apply value: %d\n",apply_value); */
 
    }
 

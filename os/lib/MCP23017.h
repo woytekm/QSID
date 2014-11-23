@@ -1,7 +1,7 @@
-//
-// Q-SID OS MCP23017 (voice board control) defines
-//
-//
+/*
+ Q-SID OS MCP23017 (voice board control) defines
+
+*/
 
 #define MCP23017_GPIO_OUT 0
 #define MCP23017_GPIO_IN  1

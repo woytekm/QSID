@@ -2,10 +2,10 @@
 #include "defs.h"
 #include "task.h"
 
-//
-// thread scheduling policies: SCHED_FIFO, SCHED_RR, SCHED_BATCH, SCHED_IDLE, SCHED_OTHER
-// priority values: 1 (low) to 99 (high) only for SCHED_OTHER and SCHED_RR, for others _must_ be 0
-//
+/*
+ thread scheduling policies: SCHED_FIFO, SCHED_RR, SCHED_BATCH, SCHED_IDLE, SCHED_OTHER
+ priority values: 1 (low) to 99 (high) only for SCHED_OTHER and SCHED_RR, for others _must_ be 0
+*/
 
 
 pthread_t SYS_start_task(uint8_t task_slot_id, void (*task_function)(), int scheduling_policy, int priority)

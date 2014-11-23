@@ -3,9 +3,9 @@
 
 #ifdef QSID_RPI
 
-//
-// MIDI initialization routine for Raspberry Pi UART 
-//
+/*
+ MIDI initialization routine for Raspberry Pi UART 
+*/
 
 int8_t MIDI_RPi_MIDI_init(void)
  {
@@ -24,8 +24,8 @@ int8_t MIDI_RPi_MIDI_init(void)
     cfsetispeed(&options, B38400);
     cfsetospeed(&options, B38400);
     cfmakeraw(&options);
-    //options.c_cflag |= (CLOCAL | CREAD);
-    //options.c_cflag &= ~CRTSCTS;
+    /* options.c_cflag |= (CLOCAL | CREAD); */
+    /* options.c_cflag &= ~CRTSCTS;         */
     if (tcsetattr(UART_fd, TCSANOW, &options) != 0)
      return -1;
 

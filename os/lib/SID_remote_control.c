@@ -2,6 +2,7 @@
 #include "defs.h"
 #include "SID.h"
 #include "SID_writer.h"
+#include "QSID_config.h"
 #include "inventory.h"
 #include "patch.h"
 #include "task.h"

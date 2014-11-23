@@ -1,6 +1,6 @@
-//
-// thread (task) array for QSID OS
-//
+/*
+ thread (task) array for QSID OS
+*/
 
 #define QSID_OS_MAX_TASK 32
 #define QSID_OS_MAX_TASK_NAME_LEN 128

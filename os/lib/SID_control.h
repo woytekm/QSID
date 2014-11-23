@@ -1,6 +1,6 @@
-//
-// Prototypes for SID control functions
-//
+/*
+ Prototypes for SID control functions
+*/
 
 
 void LIB_SID_note_on(uint16_t SID_osc_pitch, uint8_t board_address);

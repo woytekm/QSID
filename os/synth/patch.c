@@ -1,6 +1,6 @@
-//
-// synth patch management routines
-//
+/*
+ synth patch management routines
+*/
 
 void SYNTH_load_patch(patch_data_t *new_patch)
  {

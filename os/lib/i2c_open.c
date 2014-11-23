@@ -1,8 +1,8 @@
-//
-// Q-SID OS
-//
-// I2C I/O
-//
+/*
+ Q-SID OS
+
+ I2C I/O
+*/
 
 #ifndef I2C_BCM2835
 

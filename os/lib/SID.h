@@ -1,6 +1,6 @@
-//
-// RPi SID synth defines
-//
+/*
+ RPi SID synth defines
+*/
 
 #define SID_OSC1_FREQ_LO 0
 #define SID_OSC1_FREQ_HI 1
@@ -36,7 +36,7 @@
 #define SID_OSC3 27
 #define SID_ENV3 28
 
-// virtual SID registers needed for patch manipulation rather than direct chip manipulation
+/* virtual SID registers needed for patch manipulation rather than direct chip manipulation  */
 
 #define SID_OSC1_STATE 32
 #define SID_OSC1_DETUNE 33

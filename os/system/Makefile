@@ -7,7 +7,8 @@ all:
 	$(CC) $(CFLAGS) sysmisc.c -c  $(INCLUDES)
 	$(CC) $(CFLAGS) userio.c -c  $(INCLUDES)
 	$(CC) $(CFLAGS) task.c -c  $(INCLUDES)
-	ar rcs libqsid-system.a sysmisc.o userio.o detect.o task.o
+	$(CC) $(CFLAGS) init.c -c  $(INCLUDES)
+	ar rcs libqsid-system.a sysmisc.o userio.o detect.o task.o init.o
 
 clean:
 	rm -f *.o *.a

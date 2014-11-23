@@ -1,8 +1,8 @@
-//
-// Q-SID OS
-//
-// synth patch data structure
-//
+/*
+ Q-SID OS
+
+ synth patch data structure
+*/
 
 #include "common.h"
 
@@ -83,12 +83,12 @@ typedef struct _patch_data_t {
   uint8_t  filter_ext;
 
 
-  uint8_t  LFO1_state;  // 0 - off, 1 - on
-  uint8_t  LFO1_rate;   // 0 - 100
-  uint8_t  LFO1_shape;  // waveform constants defined in lfo.h
-  uint8_t  LFO1_depth;  // 2,4,6,8,10,12
-  uint8_t  LFO1_key_sync; // 0 - off, 1 - on
-  uint8_t  LFO1_routing;  // LFO destination constants defined in lfo.h
+  uint8_t  LFO1_state;       /* 0 - off, 1 - on */
+  uint8_t  LFO1_rate;        /* 0 - 100 */
+  uint8_t  LFO1_shape;       /* waveform constants defined in lfo.h */
+  uint8_t  LFO1_depth;       /* 2,4,6,8,10,12 */
+  uint8_t  LFO1_key_sync;    /* 0 - off, 1 - on  */
+  uint8_t  LFO1_routing;     /* LFO destination constants defined in lfo.h  */
 
   uint8_t  LFO2_state;
   uint8_t  LFO2_rate;
@@ -103,6 +103,6 @@ typedef struct _patch_data_t {
 } patch_data_t;
 
 
-patch_data_t G_current_patch;             // polyphonic, monotimbral mode, all voices assigned to one patch
-patch_data_t G_current_multi_program[8];  // multitimbral mode - multiple patches avaliable in one program
+patch_data_t G_current_patch;             /* polyphonic, monotimbral mode, all voices assigned to one patch */
+patch_data_t G_current_multi_program[8];  /* multitimbral mode - multiple patches avaliable in one program  */
 

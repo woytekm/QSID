@@ -1,21 +1,21 @@
-//
-// Q-SID OS
-//
-// hardware autodetection routines
-//
+/*
+ Q-SID OS
+
+ hardware autodetection routines
+*/
 
 #include "common.h"
 #include "inventory.h"
 #include "defs.h"
 
-#include "qsid-config.h"
+#include "QSID_config.h"
 #include "SID.h"
 #include "MCP23017.h"
 
 
-//
-// this will hopefully autodetect voice boards and fill in G_voice_inventory array
-//
+/*
+ this will hopefully autodetect voice boards and fill in G_voice_inventory array
+*/
 
 uint8_t SYS_detect_voices(void) 
  {

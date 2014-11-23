@@ -3,7 +3,7 @@
 #include "SID_writer.h"
 #include "task.h"
 
-void LIB_SID_tx_thread(void) // SID writer thread
+void LIB_SID_tx_thread(void) /* SID writer thread  */
  {
  
   SID_msg_t SID_msg_in;

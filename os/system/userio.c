@@ -1,7 +1,7 @@
-//
-// Q-SID OS  basic user input / output
-//
-//
+/*
+ Q-SID OS  basic user input / output
+
+*/
 
 #include "common.h"
 #include "defs.h"

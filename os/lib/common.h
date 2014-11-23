@@ -1,8 +1,8 @@
-//
-// Q-SID OS
-//
-// global includes
-//
+/*
+ Q-SID OS
+
+ global includes
+*/
 
 #include <stddef.h>
 #include <stdio.h>
@@ -20,15 +20,15 @@
 #include <string.h>
 #include <stdlib.h>
 
-//serial port includes
+/* serial port includes  */
 #include <termio.h>
 #include <fcntl.h>
 #include <err.h>
 #include <linux/serial.h>
 
-//UDP receiver includes
+/* UDP receiver includes  */
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-//scheduling
+/* scheduling  */
 #include <linux/sched.h>

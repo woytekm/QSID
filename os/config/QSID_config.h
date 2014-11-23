@@ -1,8 +1,10 @@
-//
-// Q-SID OS
-//
-// system configuration
-//
+/*
+
+ Q-SID OS
+
+ system configuration
+
+*/
 
 #define QSID_OS_VERSION_MAJOR 0
 #define QSID_OS_VERSION_MINOR 1 
@@ -11,6 +13,7 @@
 
 #define I2C_VOICE_BUS 1
 #define I2C_AUX_BUS 0
+#define QSID_I2C_CLOCK 1000000
 
 #else
 
@@ -21,4 +24,7 @@
 
 #define QSID_DEBUG 1
 #define QSID_DEBUG_LEVEL 1
+
+#define QSID_OS_SID_REMOTE_CONTROL_PORT 6677
+#define QSID_OS_MIDI_UDP_PORT 6678
 

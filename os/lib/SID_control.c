@@ -64,8 +64,9 @@ void LIB_apply_demo_patch(uint8_t board_address)
 
  }
 
-// detune is calculated in SID register values, and it's base unit translates roughly to 1/10 of adjacent note interval (10 cents)
-// detune can be anything from -10 to 10, which means that maximal detune value should set oscillator to the adjacent note pitch (+/- 100 cents in 10 cent units)
+/* detune is calculated in SID register values, and it's base unit translates roughly to 1/10 of adjacent note interval (10 cents)
+ detune can be anything from -10 to 10, which means that maximal detune value should set oscillator to the adjacent note pitch (+/- 100 cents in 10 cent units)
+*/
 
 int16_t LIB_SID_oscillator_detune(uint8_t MIDI_note, int8_t osc_detune)
  {
@@ -96,7 +97,7 @@ void LIB_SID_note_on(uint8_t MIDI_note, uint8_t board_address)
 
    SID_msg_t SID_OSC1_msg, SID_OSC2_msg, SID_OSC3_msg;
    
-   // load pitch registers (+detune value from patch), and then trigger ADSR on all three oscillators at once
+   /* load pitch registers (+detune value from patch), and then trigger ADSR on all three oscillators at once */
 
    SID_OSC1_msg.reg_data = G_MIDI_to_SID_reg[MIDI_note+G_current_patch.octave_transposition] + LIB_SID_oscillator_detune(MIDI_note, G_current_patch.osc1_detune);
    SID_OSC1_msg.reg_addr = SID_OSC1_FREQ_LO;
@@ -116,7 +117,7 @@ void LIB_SID_note_on(uint8_t MIDI_note, uint8_t board_address)
 
    write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_OSC3_msg, sizeof(SID_msg_t));
 
-   SID_OSC1_msg.reg_data = G_current_patch.osc1_control_reg | 1;  // set GATE bit
+   SID_OSC1_msg.reg_data = G_current_patch.osc1_control_reg | 1;  /* set GATE bit */
    SID_OSC2_msg.reg_data = G_current_patch.osc2_control_reg | 1;  
    SID_OSC3_msg.reg_data = G_current_patch.osc3_control_reg | 1;
 
@@ -140,7 +141,7 @@ void LIB_SID_note_on(uint8_t MIDI_note, uint8_t board_address)
 void LIB_SID_OSC1_note_on(uint16_t SID_osc_pitch, uint8_t board_address)
  {
  
-   // set oscillator pitch and set GATE bit on oscillator 1
+   /* set oscillator pitch and set GATE bit on oscillator 1 */
 
    SID_msg_t SID_msg;
 
@@ -159,7 +160,7 @@ void LIB_SID_OSC1_note_on(uint16_t SID_osc_pitch, uint8_t board_address)
 void LIB_SID_OSC2_note_on(uint16_t SID_osc_pitch, uint8_t board_address)
  {
 
-   // set oscillator pitch and set GATE bit on oscillator 2
+   /* set oscillator pitch and set GATE bit on oscillator 2 */
  
    SID_msg_t SID_msg;
 
@@ -178,7 +179,7 @@ void LIB_SID_OSC2_note_on(uint16_t SID_osc_pitch, uint8_t board_address)
 void LIB_SID_OSC3_note_on(uint16_t SID_osc_pitch, uint8_t board_address)
  {
 
-   // set oscillator pitch and set GATE bit on oscillator 3
+   /* set oscillator pitch and set GATE bit on oscillator 3 */
 
    SID_msg_t SID_msg;
 
@@ -198,7 +199,7 @@ void LIB_SID_OSC3_note_on(uint16_t SID_osc_pitch, uint8_t board_address)
 void LIB_SID_note_off(uint8_t board_address)
  {
 
-  // clear GATE bit on all three oscillators
+  /* clear GATE bit on all three oscillators */
 
   SID_msg_t SID_msg;
 
@@ -226,8 +227,8 @@ void LIB_apply_LFO_CUTOFF(uint8_t board_address, uint16_t apply_value)
 
   SID_msg.SID_addr = board_address;
 
-  cutoff_lo = apply_value & 7; // lowest three bits
-  cutoff_hi = apply_value  >> 3;  // shift out three bits
+  cutoff_lo = apply_value & 7; /* lowest three bits */
+  cutoff_hi = apply_value  >> 3;  /* shift out three bits */
 
   SID_msg.reg_addr = SID_FLT_CUTOFF_LO;
   SID_msg.reg_data = cutoff_lo;

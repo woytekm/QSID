@@ -48,13 +48,11 @@ All rights reserved.
 #include "i2c_lib.h"
 #include "defs.h"
 
+#include "QSID_config.h"
+
 #ifdef I2C_BCM2835
 
 #include "bcm2835.h"
-
-#define RPI_I2C_BUS0 0
-#define RPI_I2C_BUS1 1
-#define RPI_QSID_I2C_CLOCK 1000000
 
 
 int8_t LIB_i2c_bcm2835_init(void)
@@ -66,11 +64,11 @@ int8_t LIB_i2c_bcm2835_init(void)
     return 0;
    }
 
-  bcm2835_i2c_begin(RPI_I2C_BUS0);
-  bcm2835_i2c_begin(RPI_I2C_BUS1);
+  bcm2835_i2c_begin(I2C_VOICE_BUS);
+  bcm2835_i2c_begin(I2C_AUX_BUS);
 
-  bcm2835_i2c_set_baudrate(RPI_I2C_BUS0, RPI_QSID_I2C_CLOCK);
-  bcm2835_i2c_set_baudrate(RPI_I2C_BUS1, RPI_QSID_I2C_CLOCK);
+  bcm2835_i2c_set_baudrate(I2C_VOICE_BUS, QSID_I2C_CLOCK);
+  bcm2835_i2c_set_baudrate(I2C_AUX_BUS, QSID_I2C_CLOCK);
 
   return 1;
 
@@ -122,7 +120,7 @@ uint8_t LIB_get_i2c_register(int bus, unsigned char addr, unsigned char reg, uin
  }
 
 
-#else
+#else  /* use ioctl based routines */
 
 uint8_t LIB_set_i2c_register(int file,
                             unsigned char addr,
@@ -149,9 +147,8 @@ uint8_t LIB_set_i2c_register(int file,
 
     outbuf[1] = value;
 
-    //SYS_debug("set_i2c_register: addr: 0x%x, reg: 0x%x, val: 0x%x", addr, reg, value);
-
     /* Transfer the i2c packets to the kernel and verify it worked */
+
     packets.msgs  = messages;
     packets.nmsgs = 1;
     if(ioctl(file, I2C_RDWR, &packets) < 0) {

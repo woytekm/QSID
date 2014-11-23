@@ -1,8 +1,6 @@
-//
-// i2c_lib header
-//
-
-#include <stdint.h>
+/*
+ i2c_lib header
+*/
 
 #define I2C_FILE_NAME "/dev/i2c-1"
 

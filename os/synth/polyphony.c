@@ -15,11 +15,11 @@ uint8_t SYNTH_get_free_voice(void)
   for(i=1; i <= G_inventory_voice_count; i++)
    {
     
-    if(G_voice_inventory[i].note == 0)    // found free voice
+    if(G_voice_inventory[i].note == 0)    /* found free voice  */
       return i;
 
     if(G_voice_inventory[i].note > 0)   
-     if(G_voice_inventory[i].playstart < oldest_timestamp)   // find oldest playing voice
+     if(G_voice_inventory[i].playstart < oldest_timestamp)   /* find oldest playing voice  */
       {
         oldest_timestamp = G_voice_inventory[i].playstart;
         oldest_playing_voice = i;
@@ -27,7 +27,7 @@ uint8_t SYNTH_get_free_voice(void)
       }
    }
 
-  // kill oldest playing note and return it's voice as free
+  /* kill oldest playing note and return it's voice as free  */
 
   SYS_debug(DEBUG_HIGH,"SYNTH_get_free_voice: no free voices: killing oldest note (%d, %d)\n",oldest_playing_voice, oldest_playing_note);
   SYNTH_note_off(oldest_playing_note);

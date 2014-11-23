@@ -19,19 +19,19 @@ void SYNTH_note_on(uint16_t midi_note, uint16_t attack_velocity)
 
      SYS_debug(DEBUG_HIGH,"SYNTH_note_on: allocating voice %d",free_voice);
      G_playing_voices++;
-     //G_voice_inventory[free_voice].state = G_playing_voices;  
-     G_voice_inventory[free_voice].note = midi_note;            // assign MIDI note to voice (needed for note off)
-     G_voice_inventory[free_voice].playstart = SYS_get_timestamp();         // timestamp this note
+     /* G_voice_inventory[free_voice].state = G_playing_voices;   */
+     G_voice_inventory[free_voice].note = midi_note;            /* assign MIDI note to voice (needed for note off) */
+     G_voice_inventory[free_voice].playstart = SYS_get_timestamp();         /* timestamp this note  */
 
-     // SID specific part 
-     // TODO: check patch data: which oscillators to fire up, detune, and other stuff
-     //if(G_current_patch.osc1_on)
+     /* SID specific part   */
+     /* TODO: check patch data: which oscillators to fire up, detune, and other stuff  */
+     /* if(G_current_patch.osc1_on) */
       LIB_SID_OSC1_note_on(midi_note+G_current_patch.octave_transposition,G_voice_inventory[free_voice].address);
-     //if(G_current_patch.osc2_on)
+     /* if(G_current_patch.osc2_on)  */
       LIB_SID_OSC2_note_on(midi_note+G_current_patch.octave_transposition,G_voice_inventory[free_voice].address);
-     //if(G_current_patch.osc3_on)
+     /* if(G_current_patch.osc3_on)   */
       LIB_SID_OSC3_note_on(midi_note+G_current_patch.octave_transposition,G_voice_inventory[free_voice].address);
-     // SID specific part end
+     /* SID specific part end  */
 
     }
    else 
@@ -53,9 +53,10 @@ void SYNTH_note_on_fast(uint16_t midi_note, uint16_t attack_velocity)
 
      SYS_debug(DEBUG_HIGH,"SYNTH_note_on_fast: allocating voice %d",free_voice);
      G_playing_voices++;
-     //G_voice_inventory[free_voice].state = G_playing_voices;  
-     G_voice_inventory[free_voice].note = midi_note;          // assign MIDI note to voice (needed for note off)
-     G_voice_inventory[free_voice].playstart = SYS_get_timestamp();         // timestamp this note
+     /* G_voice_inventory[free_voice].state = G_playing_voices;   */
+     G_voice_inventory[free_voice].note = midi_note;          /* assign MIDI note to voice (needed for note off) */
+
+     G_voice_inventory[free_voice].playstart = SYS_get_timestamp();         /* timestamp this note  */
 
      LIB_SID_note_on(midi_note+G_current_patch.octave_transposition,G_voice_inventory[free_voice].address);
 
@@ -76,17 +77,17 @@ void SYNTH_note_off(uint16_t midi_note)
   for(i=1; i <= G_inventory_voice_count; i++)
    {
 
-    if(G_voice_inventory[i].note == midi_note)    //this is the voice that should be silenced
+    if(G_voice_inventory[i].note == midi_note)    /* this is the voice that should be silenced  */
      {
       SYS_debug(DEBUG_HIGH,"SYNTH_note_off: freeing voice %d",i);
-      G_playing_voices--;            // potential bug here! TODO
+      G_playing_voices--;            /* potential bug here! TODO */
       G_voice_inventory[i].note = 0;
       G_voice_inventory[i].state = 0;
       G_voice_inventory[i].playstart = 0;
 
-      // SID specific part
+      /* SID specific part */
       LIB_SID_note_off(G_voice_inventory[i].address);
-      // SID specific part end
+      /* SID specific part end  */
 
       return;
      }
