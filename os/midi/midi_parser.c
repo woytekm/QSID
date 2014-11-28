@@ -54,84 +54,84 @@
        SYS_debug(DEBUG_NORMAL,"MIDI_parse_one_MIDI_msg: invalid MIDI note value %d!",midi_in_buffer[at_offset+1]); 
       break;
 
-    case 0x80:  /* note off  */
-     next_message_offset = at_offset + G_MIDI_msg_lengths[0x80];
+     case 0x80:  /* note off  */
+      next_message_offset = at_offset + G_MIDI_msg_lengths[0x80];
 
-     if(midi_channel != G_QSID_live_settings.MIDI_receive_channel)
+      if(midi_channel != G_QSID_live_settings.MIDI_receive_channel)
+       break;
+
+      SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: MIDI note off, CH%d, (%x)", midi_channel, midi_in_buffer[at_offset+1]);
+      SYNTH_note_off(midi_in_buffer[at_offset+1]);
       break;
 
-     SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: MIDI note off, CH%d, (%x)", midi_channel, midi_in_buffer[at_offset+1]);
-     SYNTH_note_off(midi_in_buffer[at_offset+1]);
-     break;
+     case 0xA0:  /* aftertouch */
+      next_message_offset = at_offset + G_MIDI_msg_lengths[0xA0];
+      SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: aftertouch message (not supported)");
+      break;
 
-    case 0xA0:  /* aftertouch */
-     next_message_offset = at_offset + G_MIDI_msg_lengths[0xA0];
-     SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: aftertouch message (not supported)");
-     break;
+     case 0xB0:  /* control change */
+      next_message_offset = at_offset + G_MIDI_msg_lengths[0xB0];
+      if(midi_channel != G_QSID_live_settings.MIDI_receive_channel)
+       break;
+      else
+       SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: control change message (not supported yet)");
+      break;
 
-   case 0xB0:  /* control change */
-    next_message_offset = at_offset + G_MIDI_msg_lengths[0xB0];
-    if(midi_channel != G_QSID_live_settings.MIDI_receive_channel)
-     break;
-    else
-     SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: control change message (not supported yet)");
-    break;
+     case 0xC0: /* program change */
+      next_message_offset = at_offset + G_MIDI_msg_lengths[0xC0];
+      if(midi_channel != G_QSID_live_settings.MIDI_receive_channel)
+       break;
+      else
+       SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: program change message (not supported yet)");
+      break;
 
-   case 0xC0: /* program change */
-    next_message_offset = at_offset + G_MIDI_msg_lengths[0xC0];
-    if(midi_channel != G_QSID_live_settings.MIDI_receive_channel)
-     break;
-    else
-     SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: program change message (not supported yet)");
-    break;
+     case 0xD0: /* aftertouch */
+      next_message_offset = at_offset + G_MIDI_msg_lengths[0xD0];
+      SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: aftertouch message (not supported)");
+      break;
 
-   case 0xD0: /* aftertouch */
-    next_message_offset = at_offset + G_MIDI_msg_lengths[0xD0];
-    SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: aftertouch message (not supported)");
-    break;
+     case 0xE0: /* pitchbend */
+      next_message_offset = at_offset + G_MIDI_msg_lengths[0xE0];
+      if(midi_channel != G_QSID_live_settings.MIDI_receive_channel)
+       break;
+      else
+       SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: pitchbend message (not supported yet)");
+      break;
 
-   case 0xE0: /* pitchbend */
-    next_message_offset = at_offset + G_MIDI_msg_lengths[0xE0];
-    if(midi_channel != G_QSID_live_settings.MIDI_receive_channel)
-     break;
-    else
-     SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: pitchbend message (not supported yet)");
-    break;
+     case 0xF0:  /* sysex */
+      sysex_len = MIDI_get_sysex_len(midi_in_buffer[at_offset], buflen - at_offset);
 
-   case 0xF0:  /* sysex */
-     sysex_len = MIDI_get_sysex_len(midi_in_buffer[at_offset], buflen - at_offset);
+      SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: received system exclusive message (%d bytes)", sysex_len);
 
-     SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: received system exclusive message (%d bytes)", sysex_len);
+      if(sysex_len == 0)   /* MIDI_get_sysex_len detected incomplete sysex message  - drop it */
+       return;
 
-     if(sysex_len == 0)   /* MIDI_get_sysex_len detected incomplete sysex message  - drop it */
-      return;
+      next_message_offset = at_offset + sysex_len;
 
-     next_message_offset = at_offset + sysex_len;
+      MIDI_parse_sysex(midi_in_buffer[at_offset], sysex_len);
+      break;
 
-     MIDI_parse_sysex(midi_in_buffer[at_offset], sysex_len);
-     break;
+     case 0xF8: /* MIDI clock */
+      next_message_offset = at_offset + G_MIDI_msg_lengths[0xF8];
+      /* do not log this as it would overwhelm the program - too many msgs */
+      break;
 
-   case 0xF8: /* MIDI clock */
-    next_message_offset = at_offset + G_MIDI_msg_lengths[0xF8];
-    /* do not log this as it would overwhelm the program - too many msgs */
-    break;
+     case 0xFF: /* MIDI reset */
+      next_message_offset = at_offset + G_MIDI_msg_lengths[0xFF];
+      SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: general MIDI reset message (not supported yet)");
+      break;
 
-   case 0xFF: /* MIDI reset */
-    next_message_offset = at_offset + G_MIDI_msg_lengths[0xFF];
-    SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: general MIDI reset message (not supported yet)");
-    break;
-
-   default:
-     if(midi_msgtype > 240)
-      {
-       next_message_offset = at_offset + 1;
-       SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: received unknown general system message");
-      }
-     else
-      {
-       SYS_debug(DEBUG_NORMAL,"MIDI_parse_one_MIDI_msg: unsupported MIDI message or garbage - discarding message buffer.");
-       return;    /* we have to discard entire buffer since don't know what could be the offset of the next message */
-      }
+     default:
+      if(midi_msgtype > 240)
+       {
+        next_message_offset = at_offset + 1;
+        SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: received unknown general system message");
+       }
+      else
+       {
+        SYS_debug(DEBUG_NORMAL,"MIDI_parse_one_MIDI_msg: unsupported MIDI message or garbage - discarding message buffer.");
+        return;    /* we have to discard entire buffer since don't know what could be the offset of the next message */
+       }
 
    }
 

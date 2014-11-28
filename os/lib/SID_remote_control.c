@@ -75,17 +75,17 @@ void *LIB_SID_remote_control(void)
           break;
 
          case SID_OSC1_DETUNE:
-          G_current_patch.osc1_detune = SID_control_packet.reg_data;
+          G_current_patch.osc1_fine = SID_control_packet.reg_data;
           is_virtual = 1;
           break;
 
          case SID_OSC2_DETUNE:
-          G_current_patch.osc2_detune = SID_control_packet.reg_data;
+          G_current_patch.osc2_fine = SID_control_packet.reg_data;
           is_virtual = 1;
           break;
 
          case SID_OSC3_DETUNE:
-          G_current_patch.osc3_detune = SID_control_packet.reg_data;
+          G_current_patch.osc3_fine = SID_control_packet.reg_data;
           is_virtual = 1;
           break;
 

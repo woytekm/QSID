@@ -31,9 +31,15 @@
 #define FILTER_ROUTING_OSC3 4
 #define FILTER_ROUTING_EXT 8
 
+
+#define CUTOFF_RANGE 2048
+#define PW_RANGE 4096
+#define DETUNE_RANGE 10
+#define VOLUME_RANGE 16
+
 typedef struct _patch_data_t {
   uint8_t  osc1_on;
-  int8_t  osc1_detune;
+  int8_t   osc1_fine;
   uint16_t osc1_pw;
   uint8_t  osc1_wave;
   uint8_t  osc1_ringmod_on;
@@ -48,7 +54,7 @@ typedef struct _patch_data_t {
 
 
   uint8_t  osc2_on;
-  int8_t  osc2_detune;
+  int8_t   osc2_fine;
   uint16_t osc2_pw;
   uint8_t  osc2_wave;
   uint8_t  osc2_ringmod_on;
@@ -63,7 +69,7 @@ typedef struct _patch_data_t {
 
 
   uint8_t  osc3_on;
-  int8_t  osc3_detune;
+  int8_t   osc3_fine;
   uint16_t osc3_pw;
   uint8_t  osc3_wave;
   uint8_t  osc3_ringmod_on;

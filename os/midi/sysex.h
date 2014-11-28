@@ -12,9 +12,17 @@ callback_ptr_t G_sysex_callbacks[127];
 #define QSID_SYSEX_MANUFACTURERS_ID 0x1   /* pretend we are Sequential Circuits synth  */
 
 #define SYSEX_OSC1_STATE       0x1E
+#define SYSEX_OSC1_STATE_LEN   5
+
 #define SYSEX_OSC1_FINE        0x1F
+#define SYSEX_OSC1_FINE_LEN    5
+
 #define SYSEX_OSC1_COARSE      0x20
+#define SYSEX_OSC1_COARSE_LEN  5
+
 #define SYSEX_OSC1_PW          0x21
+#define SYSEX_OSC1_PW_LEN      6
+
 #define SYSEX_OSC1_WAVE        0x22
 #define SYSEX_OSC1_RINGMOD     0x23
 #define SYSEX_OSC1_SYNC        0x24
