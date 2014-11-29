@@ -18,7 +18,8 @@ uint8_t MIDI_is_partial_message(unsigned char *buffer, uint8_t len)
   while(!finished)
    {
 
-     midi_msgtype = buffer[buffer_position];
+     midi_msgtype = buffer[buffer_position] & 0b11110000;
+
      if(midi_msgtype == 0xF0)   /* sysex - variable lenghth */
       {   
        sysex_len = MIDI_get_sysex_len(buffer, len);

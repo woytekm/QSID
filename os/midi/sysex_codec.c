@@ -1,49 +1,64 @@
 /*
-/*
- 
- encoding/decoding 8bit data to/from 7bit data
- code from: http://blogs.bl0rg.net/netzstaub/2008/08/14/encoding-8-bit-data-in-midi-sysex/
 
 */
 
-#include <stdint.h>
+#include "common.h"
+#include "defs.h"
 
-uint8_t MIDI_data_to_sysex(uint8_t *data, uint8_t *sysex, uint8_t len) {
-  uint8_t retlen = 0;
-  uint8_t cnt;
-  uint8_t cnt7 = 0;
 
-  sysex[0] = 0;
-  for (cnt = 0; cnt < len; cnt++) {
-    uint8_t c = data[cnt] & 0x7F;
-    uint8_t msb = data[cnt] >> 7;
-    sysex[0] |= msb << cnt7;
-    sysex[1 + cnt7] = c;
+int16_t MIDI_encode_sysex(uint8_t *input_data, uint16_t input_len, uint8_t device_id, uint8_t sysex_code, 
+                          uint8_t sysex_subcode, uint8_t *output_buff)
+ {
 
-    if (cnt7++ == 6) {
-      sysex += 8;
-      retlen += 8;
-      sysex[0] = 0;
-      cnt7 = 0;
+   uint16_t i=0,j=4; /* set counters to appropriate offsets */
+  
+   output_buff[0] = 0xF0;             /* build sysex header */
+   output_buff[1] = device_id;
+   output_buff[2] = sysex_code;
+   output_buff[3] = sysex_subcode;
+  
+   /* encode data */
+
+   while(i < input_len)
+    {
+     output_buff[j] = input_data[i] >> 7;        /* MSB */
+     output_buff[j+1] = input_data[i] & 127;     /* LSB */
+     i++;
+     j+=2;
     }
-  }
-  return retlen + cnt7 + (cnt7 != 0 ? 1 : 0);
-}
 
+   output_buff[++j] = 0xF7;
 
-uint8_t MIDI_sysex_to_data(uint8_t *sysex, uint8_t *data, uint8_t len) {
-  uint8_t cnt;
-  uint8_t cnt2 = 0;
-  uint8_t bits = 0;
-  for (cnt = 0; cnt < len; cnt++) {
-    if ((cnt % 8) == 0) {
-      bits = sysex[cnt];
-    } else {
-      data[cnt2++] = sysex[cnt] | ((bits & 1) << 7);
-      bits >>= 1;
+   return j; /* total sysex buffer length */
+
+ }
+
+int16_t MIDI_decode_sysex(uint8_t *input_data, uint16_t input_len, uint8_t *output_buff)
+ {
+  
+   uint16_t i=4, j=3;  /* set counters to appropriate offsets */
+
+   if(input_data[0] != 0xF0)
+    return 0;
+
+   /* copy manufacturer's ID, sysex code and subcode: */
+
+   output_buff[0] = input_data[1];
+   output_buff[1] = input_data[2];
+   output_buff[2] = input_data[3];
+
+   /* decode data: */
+
+   while(i < input_len - 1) /* do not parse trailing 0xF7 */
+    {
+     output_buff[j]  = (input_data[i] << 7) | input_data[i+1];  /* merge MSB and LSB */
+     j++;
+     i+=2;
     }
-  }
-  return cnt2;
-}
 
+   return j; /* decoded data length along with the 3-byte header, but without heading/trailing 0xF0/0xF7 */
+
+
+ }
+   
 
