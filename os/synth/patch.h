@@ -32,10 +32,10 @@
 #define FILTER_ROUTING_EXT 8
 
 
-#define CUTOFF_RANGE 2048
-#define PW_RANGE 4096
+#define CUTOFF_RANGE 2047
+#define PW_RANGE 4095
 #define DETUNE_RANGE 10
-#define VOLUME_RANGE 16
+#define VOLUME_RANGE 15
 
 typedef struct _patch_data_t {
   uint8_t  osc1_on;

@@ -6,17 +6,15 @@
 #include "defs.h"
 
 
-int16_t MIDI_encode_sysex(uint8_t *input_data, uint16_t input_len, uint8_t device_id, uint8_t sysex_code, 
-                          uint8_t sysex_subcode, uint8_t *output_buff)
+    int16_t MIDI_encode_sysex(uint8_t *input_data, uint16_t input_len, uint8_t device_id, uint8_t sysex_code,
+                            uint8_t *output_buff)
  {
+   uint16_t i=0,j=3; /* set counters to appropriate offsets */
 
-   uint16_t i=0,j=4; /* set counters to appropriate offsets */
-  
    output_buff[0] = 0xF0;             /* build sysex header */
    output_buff[1] = device_id;
    output_buff[2] = sysex_code;
-   output_buff[3] = sysex_subcode;
-  
+
    /* encode data */
 
    while(i < input_len)
@@ -27,25 +25,23 @@ int16_t MIDI_encode_sysex(uint8_t *input_data, uint16_t input_len, uint8_t devic
      j+=2;
     }
 
-   output_buff[++j] = 0xF7;
+   output_buff[j] = 0xF7;
 
-   return j; /* total sysex buffer length */
-
+   return j+1; /* total sysex buffer length */
  }
 
 int16_t MIDI_decode_sysex(uint8_t *input_data, uint16_t input_len, uint8_t *output_buff)
  {
-  
-   uint16_t i=4, j=3;  /* set counters to appropriate offsets */
+   uint16_t i=3, j=3;  /* set counters to appropriate offsets */
 
    if(input_data[0] != 0xF0)
     return 0;
 
-   /* copy manufacturer's ID, sysex code and subcode: */
+   /* copy sysex magic byte, manufacturer's ID and sysex code: */
 
-   output_buff[0] = input_data[1];
-   output_buff[1] = input_data[2];
-   output_buff[2] = input_data[3];
+   output_buff[0] = input_data[0];
+   output_buff[1] = input_data[1];
+   output_buff[2] = input_data[2];
 
    /* decode data: */
 
@@ -56,9 +52,9 @@ int16_t MIDI_decode_sysex(uint8_t *input_data, uint16_t input_len, uint8_t *outp
      i+=2;
     }
 
-   return j; /* decoded data length along with the 3-byte header, but without heading/trailing 0xF0/0xF7 */
+   output_buff[j] = 0xF7;
 
-
+   return j+1; /* decoded data length along with the 3-byte header, but without heading/trailing 0xF0/0xF7 */
  }
-   
+ 
 
