@@ -4,6 +4,7 @@
 //
 //
 
+#include "QSID_config.h"
 #include "common.h"
 #include "defs.h"
 #include "SID_writer.h"
@@ -50,7 +51,7 @@ void refresh_panel_data(patch_data_t *patch)
    mvprintw(ROW1,COLUMN1,"1 toggle on       (%d)  ",patch->osc1_on);
    mvprintw(ROW2,COLUMN1,"! toggle waveform (%d)  ",patch->osc1_wave);
    mvprintw(ROW3,COLUMN1,"q - PW + Q        (%d)  ",patch->osc1_pw);
-   mvprintw(ROW4,COLUMN1,"t - detune + T    (%d)  ",patch->osc1_detune);
+   mvprintw(ROW4,COLUMN1,"t - detune + T    (%d)  ",patch->osc1_fine);
    mvprintw(ROW5,COLUMN1,"4 toggle filter   (%d)  ",patch->osc1_filter_on);
    mvprintw(ROW6,COLUMN1,"7 toggle sync     (%d)  ",patch->osc1_sync_on);
    mvprintw(ROW7,COLUMN1,"& toggle ring mod (%d)  ",patch->osc1_ringmod_on);
@@ -58,7 +59,7 @@ void refresh_panel_data(patch_data_t *patch)
    mvprintw(ROW1,COLUMN2,"2 toggle on       (%d)  ",patch->osc2_on);
    mvprintw(ROW2,COLUMN2,"@ toggle waveform (%d)  ",patch->osc2_wave);
    mvprintw(ROW3,COLUMN2,"w - PW + W        (%d)  ",patch->osc2_pw);
-   mvprintw(ROW4,COLUMN2,"y - detune + Y    (%d)  ",patch->osc2_detune);
+   mvprintw(ROW4,COLUMN2,"y - detune + Y    (%d)  ",patch->osc2_fine);
    mvprintw(ROW5,COLUMN2,"5 toggle filter   (%d)  ",patch->osc2_filter_on);
    mvprintw(ROW6,COLUMN2,"8 toggle sync     (%d)  ",patch->osc2_sync_on);
    mvprintw(ROW7,COLUMN2,"* toggle ring mod (%d)  ",patch->osc2_ringmod_on);
@@ -66,7 +67,7 @@ void refresh_panel_data(patch_data_t *patch)
    mvprintw(ROW1,COLUMN3,"3 toggle on       (%d)  ",patch->osc3_on);
    mvprintw(ROW2,COLUMN3,"# toggle waveform (%d)  ",patch->osc3_wave);
    mvprintw(ROW3,COLUMN3,"e - PW + E        (%d)  ",patch->osc3_pw);
-   mvprintw(ROW4,COLUMN3,"u - detune + U    (%d)  ",patch->osc3_detune);
+   mvprintw(ROW4,COLUMN3,"u - detune + U    (%d)  ",patch->osc3_fine);
    mvprintw(ROW5,COLUMN3,"6 toggle filter   (%d)  ",patch->osc3_filter_on);
    mvprintw(ROW6,COLUMN3,"9 toggle sync     (%d)  ",patch->osc3_sync_on);
    mvprintw(ROW7,COLUMN3,"( toggle ring mod (%d)  ",patch->osc3_ringmod_on);
@@ -144,9 +145,9 @@ void init_patch(patch_data_t *blank_patch)
    blank_patch->osc3_adsr_release = 0; //(lower 4 bits)
 
 
-   blank_patch->osc1_detune = 0;
-   blank_patch->osc2_detune = 0;
-   blank_patch->osc3_detune = 0;
+   blank_patch->osc1_fine = 0;
+   blank_patch->osc2_fine = 0;
+   blank_patch->osc3_fine = 0;
    
    blank_patch->osc1_wave = WAVEFORM_TRIANGLE;
    blank_patch->osc2_wave = WAVEFORM_TRIANGLE;
@@ -196,15 +197,15 @@ void remote_apply_patch(patch_data_t *new_patch, int sock, struct sockaddr_in *s
 
 
     SID_control_packet.reg_addr = SID_OSC1_DETUNE;
-    SID_control_packet.reg_data = new_patch->osc1_detune;
+    SID_control_packet.reg_data = new_patch->osc1_fine;
     send_to_QSID(sock, &SID_control_packet, srv_addr);
 
     SID_control_packet.reg_addr = SID_OSC2_DETUNE;
-    SID_control_packet.reg_data = new_patch->osc2_detune;
+    SID_control_packet.reg_data = new_patch->osc2_fine;
     send_to_QSID(sock, &SID_control_packet, srv_addr);
 
     SID_control_packet.reg_addr = SID_OSC3_DETUNE;
-    SID_control_packet.reg_data = new_patch->osc3_detune;
+    SID_control_packet.reg_data = new_patch->osc3_fine;
     send_to_QSID(sock, &SID_control_packet, srv_addr);
 
     pw_lo = new_patch->osc1_pw & pw_mask;
@@ -729,11 +730,11 @@ int main(int argc, char**argv)
       if(input == 't')
        {
 
-        if(current_patch.osc1_detune > -10)
-         current_patch.osc1_detune--;
+        if(current_patch.osc1_fine > -10)
+         current_patch.osc1_fine--;
 
         SID_control_packet.reg_addr = SID_OSC1_DETUNE;
-        SID_control_packet.reg_data = current_patch.osc1_detune;
+        SID_control_packet.reg_data = current_patch.osc1_fine;
 
         mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
 
@@ -744,11 +745,11 @@ int main(int argc, char**argv)
       if(input == 'T')
        {
 
-        if(current_patch.osc1_detune < 10)
-         current_patch.osc1_detune++;
+        if(current_patch.osc1_fine < 10)
+         current_patch.osc1_fine++;
 
         SID_control_packet.reg_addr = SID_OSC1_DETUNE;
-        SID_control_packet.reg_data = current_patch.osc1_detune;
+        SID_control_packet.reg_data = current_patch.osc1_fine;
 
         mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
 
@@ -759,11 +760,11 @@ int main(int argc, char**argv)
       if(input == 'y')
        {
 
-        if(current_patch.osc2_detune > -10)
-         current_patch.osc2_detune--;
+        if(current_patch.osc2_fine > -10)
+         current_patch.osc2_fine--;
 
         SID_control_packet.reg_addr = SID_OSC2_DETUNE;
-        SID_control_packet.reg_data = current_patch.osc2_detune;
+        SID_control_packet.reg_data = current_patch.osc2_fine;
 
         mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
 
@@ -774,11 +775,11 @@ int main(int argc, char**argv)
       if(input == 'Y')
        {
 
-        if(current_patch.osc2_detune < 10)
-         current_patch.osc2_detune++;
+        if(current_patch.osc2_fine < 10)
+         current_patch.osc2_fine++;
 
         SID_control_packet.reg_addr = SID_OSC2_DETUNE;
-        SID_control_packet.reg_data = current_patch.osc2_detune;
+        SID_control_packet.reg_data = current_patch.osc2_fine;
 
         mvprintw(STATUS_LINE, PANEL_UPPER_LEFT_CORNER_X, "[ sent to QSID: addr: %x, data: %x  ]    ",SID_control_packet.reg_addr, SID_control_packet.reg_data);
 

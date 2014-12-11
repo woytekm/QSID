@@ -99,7 +99,7 @@
       break;
 
      case 0xF0:  /* sysex */
-      sysex_len = MIDI_get_sysex_len(midi_in_buffer[at_offset], buflen - at_offset);
+      sysex_len = MIDI_get_sysex_len(&midi_in_buffer[at_offset], buflen - at_offset);
 
       SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: received system exclusive message (%d bytes)", sysex_len);
 
@@ -108,7 +108,7 @@
 
       next_message_offset = at_offset + sysex_len;
 
-      MIDI_parse_sysex(midi_in_buffer[at_offset], sysex_len);
+      MIDI_parse_sysex(&midi_in_buffer[at_offset], sysex_len);
       break;
 
      case 0xF8: /* MIDI clock */

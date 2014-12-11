@@ -19,12 +19,12 @@
  
      G_QSID_live_settings.MIDI_receive_channel = 1;
 
-     SYS_debug(DEBUG_NORMAL,"SYS_init: registering sysex callbacks...");
-     MIDI_register_sysex_callbacks();
+     SYS_debug(DEBUG_LOW,"SYS_init: registering sysex handlers...");
+     MIDI_register_sysex_handlers();
 
      MIDI_init_MIDI_msg_lenghts();
 
-     SYS_debug(DEBUG_NORMAL,"SYS_init: I2C init...");
+     SYS_debug(DEBUG_LOW,"SYS_init: I2C init...");
 
 #ifdef I2C_BCM2835
  

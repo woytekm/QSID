@@ -5,7 +5,7 @@
 
 /* MIDI over UDP receiver */
 
-void *MIDI_UDP_input(void)
+void MIDI_UDP_input(void)
  {
 
    /* UDP receiver code taken from: http://www.cs.ucsb.edu/~almeroth/classes/W01.176B/hw2/examples/udp-server.c  */
@@ -29,10 +29,11 @@ void *MIDI_UDP_input(void)
 
    len = sizeof(cliaddr);
 
+   SYS_debug(DEBUG_HIGH,"MIDI_UDP_receiver: waiting for messages on port %d ...",QSID_OS_MIDI_UDP_PORT);
+
    while(1)
     {
 
-      SYS_debug(DEBUG_HIGH,"MIDI_UDP_receiver: waiting for messages on port %d ...",QSID_OS_MIDI_UDP_PORT);
       rc = recvfrom(sockfd,&midi_message_buffer,sizeof(midi_message_buffer),0,(struct sockaddr *)&cliaddr,&len);
 
       while(last_message_incomplete)   /* partial midi message reassembly. TODO: add midi_message_buffer overflow check */

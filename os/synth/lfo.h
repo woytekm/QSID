@@ -18,6 +18,8 @@
 #define LFO_SHAPE_SQUARE 13
 #define LFO_SHAPE_SH 14
 
+#define LFO_RATE_MAX 100
+#define LFO_DEPTH_MAX 100
 
 #define LFO_RANGE 1024
 
