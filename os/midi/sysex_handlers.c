@@ -28,52 +28,47 @@ uint8_t MIDI_SYSEX_OSC1_STATE_CBK(unsigned char *message_buffer, uint16_t buffer
  valid data: one byte - 0 or 1 for oscillator off or on
 */
  { 
-  uint8_t decoded_buffer[SYSEX_OSC1_STATE_LEN];
-  uint16_t decoded_len;
-
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC1_STATE) || (buffer_len != SYSEX_OSC1_STATE_LEN))
    return 0;
 
-  SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
+  SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data", buffer_len-SYSEX_CONTROL_BYTES);
 
-  MIDI_debug_dump_sysex(message_buffer, buffer_len, 0);
-
-  if( (decoded_len = MIDI_decode_sysex(message_buffer, buffer_len, &decoded_buffer)) == 0)
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  MIDI_debug_dump_sysex(decoded_buffer, decoded_len, 1);
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
   
-  if((decoded_buffer[SYSEX_DATA_POS] == 0) || (decoded_buffer[SYSEX_DATA_POS] == 1))  
+  if((message_buffer[SYSEX_DATA_POS] == 0) || (message_buffer[SYSEX_DATA_POS] == 1))  
    {
-    G_current_patch.osc1_on = decoded_buffer[SYSEX_DATA_POS];
+    G_current_patch.osc1_on = message_buffer[SYSEX_DATA_POS];
     return 1;
    }
   else 
-   return 0;
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",message_buffer[SYSEX_DATA_POS]);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC1_FINE_CBK(unsigned char *message_buffer, uint16_t buffer_len)
 /*
- valid data: one signed byte in FINE detune range
+ valid data: one unsigned byte in 0 - 2*DETUNE_RANGE range (to avoid signed/unsigned conversion)
 */
  { 
-  uint8_t decoded_buffer[SYSEX_OSC1_FINE_LEN];
   int8_t  decoded_signed_val;
-  uint16_t decoded_len;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC1_FINE) || (buffer_len != SYSEX_OSC1_FINE_LEN))
    return 0;
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len - SYSEX_CONTROL_BYTES);
 
-  MIDI_debug_dump_sysex(message_buffer, buffer_len, 0);
-  
-  if( (decoded_len = MIDI_decode_sysex(message_buffer, buffer_len, &decoded_buffer)) == 0)
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0) 
    return 0;
 
-  MIDI_debug_dump_sysex(decoded_buffer, buffer_len, 1);
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
 
-  decoded_signed_val = (int8_t)decoded_buffer[SYSEX_DATA_POS];
+  decoded_signed_val = (int8_t)message_buffer[SYSEX_DATA_POS];
+  decoded_signed_val -= DETUNE_RANGE;
   
   if((decoded_signed_val >= (DETUNE_RANGE * -1)) && (decoded_signed_val <= DETUNE_RANGE))
    {
@@ -81,7 +76,10 @@ uint8_t MIDI_SYSEX_OSC1_FINE_CBK(unsigned char *message_buffer, uint16_t buffer_
     return 1;
    }
   else
-   return 0;
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_signed_val);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC1_COARSE_CBK(unsigned char *message_buffer, uint16_t buffer_len)
@@ -95,22 +93,20 @@ uint8_t MIDI_SYSEX_OSC1_PW_CBK(unsigned char *message_buffer, uint16_t buffer_le
 */
  { 
   SID_msg_t SID_msg_LSB, SID_msg_MSB;
-  uint8_t  decoded_buffer[SYSEX_OSC1_PW_LEN],pw_lo,pw_hi,pw_mask = 255, voice_counter;
-  uint16_t *decoded_val, decoded_len;
+  uint8_t  pw_lo,pw_hi,pw_mask = 255, voice_counter;
+  uint16_t *decoded_val;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC1_PW) || (buffer_len != SYSEX_OSC1_PW_LEN))
    return 0;
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len - SYSEX_CONTROL_BYTES);
 
-  MIDI_debug_dump_sysex(message_buffer, buffer_len, 0);
-
-  if( (decoded_len = MIDI_decode_sysex(message_buffer, buffer_len, &decoded_buffer)) == 0)
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  MIDI_debug_dump_sysex(decoded_buffer, decoded_len, 1);
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
 
-  decoded_val = (uint16_t *) &decoded_buffer[SYSEX_DATA_POS]; /* two bytes */
+  decoded_val = (uint16_t *) &message_buffer[SYSEX_DATA_POS]; /* two bytes */
 
   if(*decoded_val < PW_RANGE)
    {
@@ -147,23 +143,19 @@ uint8_t MIDI_SYSEX_OSC1_WAVE_CBK(unsigned char *message_buffer, uint16_t buffer_
  valid data: uint8_t enum WAVEFORM_NOISE || WAVEFORM_PULSE || WAVEFORM_SAWTOOTH || WAVEFORM_TRIANGLE
 */
  { 
-  uint8_t decoded_buffer[SYSEX_OSC1_WAVE_LEN];
   uint8_t decoded_val;
-  uint16_t decoded_len;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC1_WAVE) || (buffer_len != SYSEX_OSC1_WAVE_LEN))
    return 0;
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  MIDI_debug_dump_sysex(message_buffer, buffer_len, 0);
-
-  if((decoded_len = MIDI_decode_sysex(message_buffer, buffer_len, &decoded_buffer)) == 0);
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  MIDI_debug_dump_sysex(decoded_buffer, buffer_len, 1);
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
 
-  decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  decoded_val = message_buffer[SYSEX_DATA_POS];
 
   if((decoded_val == WAVEFORM_NOISE) || (decoded_val == WAVEFORM_PULSE) || 
      (decoded_val == WAVEFORM_SAWTOOTH) || (decoded_val == WAVEFORM_TRIANGLE))
@@ -173,7 +165,11 @@ uint8_t MIDI_SYSEX_OSC1_WAVE_CBK(unsigned char *message_buffer, uint16_t buffer_
     G_current_patch.osc1_control_reg |= decoded_val;
     return 1;
    }
-  else return 0;
+  else 
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
 
  }
 
@@ -182,37 +178,37 @@ uint8_t MIDI_SYSEX_OSC1_RINGMOD_CBK(unsigned char *message_buffer, uint16_t buff
  valid data: uint8_t RINGMOD or RINGMOD_CLEAR for ring modulator on or off
 */
  { 
-  uint8_t decoded_buffer[SYSEX_OSC1_RINGMOD_LEN];
   uint8_t decoded_val;
-  uint16_t decoded_len;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC1_RINGMOD) || (buffer_len != SYSEX_OSC1_RINGMOD_LEN))
    return 0;
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  MIDI_debug_dump_sysex(message_buffer, buffer_len, 0);
-
-  if( (decoded_len = MIDI_decode_sysex(message_buffer, buffer_len, &decoded_buffer)) == 0)
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  MIDI_debug_dump_sysex(decoded_buffer, buffer_len, 1);
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
 
- decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  decoded_val = message_buffer[SYSEX_DATA_POS];
 
- if(decoded_val == RINGMOD)
+  if(decoded_val == RINGMOD)
    {
      G_current_patch.osc1_ringmod_on = decoded_val;
      G_current_patch.osc1_control_reg |= decoded_val;
      return 1;
    }
- else if(decoded_val == RINGMOD_CLEAR)
+  else if(decoded_val == RINGMOD_CLEAR)
    {
      G_current_patch.osc1_ringmod_on = decoded_val;
      G_current_patch.osc1_control_reg &= decoded_val;
      return 1;
    }
-  else return 0;
+  else 
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC1_SYNC_CBK(unsigned char *message_buffer, uint16_t buffer_len)
@@ -220,23 +216,19 @@ uint8_t MIDI_SYSEX_OSC1_SYNC_CBK(unsigned char *message_buffer, uint16_t buffer_
  valid data: uint8_t OSC_SYNC or OSC_SYNC_CLEAR for oscillator sync on or off
 */
  { 
-  uint8_t decoded_buffer[SYSEX_OSC1_SYNC_LEN];
   uint8_t decoded_val;
-  uint16_t decoded_len;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC1_SYNC) || (buffer_len != SYSEX_OSC1_SYNC_LEN))
    return 0;
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  MIDI_debug_dump_sysex(message_buffer, buffer_len, 0);
-
-  if( (MIDI_decode_sysex(message_buffer, buffer_len, &decoded_buffer)) == 0 )
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  MIDI_debug_dump_sysex(decoded_buffer, buffer_len, 1);
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
 
-  decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  decoded_val = message_buffer[SYSEX_DATA_POS];
 
   if(decoded_val == OSC_SYNC)
    {
@@ -250,7 +242,11 @@ uint8_t MIDI_SYSEX_OSC1_SYNC_CBK(unsigned char *message_buffer, uint16_t buffer_
      G_current_patch.osc1_control_reg &= decoded_val;
      return 1;
    }
-  else return 0;
+  else 
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC1_ATTACK_CBK(unsigned char *message_buffer, uint16_t buffer_len)
@@ -259,23 +255,19 @@ uint8_t MIDI_SYSEX_OSC1_ATTACK_CBK(unsigned char *message_buffer, uint16_t buffe
 */
  { 
   SID_msg_t SID_msg;
-  uint8_t decoded_buffer[SYSEX_OSC1_ATTACK_LEN];
   uint8_t decoded_val, voice_counter;
-  uint16_t decoded_len;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC1_ATTACK) || (buffer_len != SYSEX_OSC1_ATTACK_LEN))
    return 0;
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
  
-  MIDI_debug_dump_sysex(message_buffer, buffer_len, 0);
-
-  if( (MIDI_decode_sysex(message_buffer, buffer_len, &decoded_buffer)) == 0 )
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  MIDI_debug_dump_sysex(decoded_buffer, buffer_len, 1);
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
 
-  decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  decoded_val = message_buffer[SYSEX_DATA_POS];
 
   if(decoded_val <= 15 )
    {
@@ -289,7 +281,11 @@ uint8_t MIDI_SYSEX_OSC1_ATTACK_CBK(unsigned char *message_buffer, uint16_t buffe
       }
     return 1;
    }
-  else return 0;
+  else
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC1_DECAY_CBK(unsigned char *message_buffer, uint16_t buffer_len)
@@ -298,23 +294,19 @@ uint8_t MIDI_SYSEX_OSC1_DECAY_CBK(unsigned char *message_buffer, uint16_t buffer
 */
  { 
   SID_msg_t SID_msg;
-  uint8_t decoded_buffer[SYSEX_OSC1_DECAY_LEN];
   uint8_t decoded_val, voice_counter;
-  uint16_t decoded_len;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC1_DECAY) || (buffer_len != SYSEX_OSC1_DECAY_LEN))
    return 0;
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  MIDI_debug_dump_sysex(message_buffer, buffer_len, 0);
-
-  if( (MIDI_decode_sysex(message_buffer, buffer_len, &decoded_buffer)) == 0 )
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
      return 0;
 
-  MIDI_debug_dump_sysex(decoded_buffer, buffer_len, 1);
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
 
-  decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  decoded_val = message_buffer[SYSEX_DATA_POS];
 
   if(decoded_val <= 15 )
    {
@@ -328,7 +320,11 @@ uint8_t MIDI_SYSEX_OSC1_DECAY_CBK(unsigned char *message_buffer, uint16_t buffer
       }
     return 1;
    }
-  else return 0;
+  else
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC1_SUSTAIN_CBK(unsigned char *message_buffer, uint16_t buffer_len)
@@ -337,23 +333,19 @@ uint8_t MIDI_SYSEX_OSC1_SUSTAIN_CBK(unsigned char *message_buffer, uint16_t buff
 */
  { 
   SID_msg_t SID_msg;
-  uint8_t decoded_buffer[SYSEX_OSC1_SUSTAIN_LEN];
   uint8_t decoded_val, voice_counter;
-  uint16_t decoded_len;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC1_SUSTAIN) || (buffer_len != SYSEX_OSC1_SUSTAIN_LEN))
    return 0;
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  MIDI_debug_dump_sysex(message_buffer, buffer_len, 0);
-
-  if( (MIDI_decode_sysex(message_buffer, buffer_len, &decoded_buffer)) == 0 )
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
      return 0;
 
-  MIDI_debug_dump_sysex(decoded_buffer, buffer_len, 1);
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
 
-  decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  decoded_val = message_buffer[SYSEX_DATA_POS];
 
   if(decoded_val <= 15 )
    {
@@ -367,7 +359,11 @@ uint8_t MIDI_SYSEX_OSC1_SUSTAIN_CBK(unsigned char *message_buffer, uint16_t buff
      }
     return 1;
    }
-  else return 0;
+  else
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC1_RELEASE_CBK(unsigned char *message_buffer, uint16_t buffer_len)
@@ -376,23 +372,19 @@ uint8_t MIDI_SYSEX_OSC1_RELEASE_CBK(unsigned char *message_buffer, uint16_t buff
 */
  { 
   SID_msg_t SID_msg;
-  uint8_t decoded_buffer[SYSEX_OSC1_RELEASE_LEN];
   uint8_t decoded_val, voice_counter;
-  uint16_t decoded_len;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC1_RELEASE) || (buffer_len != SYSEX_OSC1_RELEASE_LEN))
    return 0;
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  MIDI_debug_dump_sysex(message_buffer, buffer_len, 0);
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
+   return 0;
 
-  if( (MIDI_decode_sysex(message_buffer, buffer_len, &decoded_buffer)) == 0 )
-     return 0;
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
 
-  MIDI_debug_dump_sysex(decoded_buffer, buffer_len, 1);
-
-  decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  decoded_val = message_buffer[SYSEX_DATA_POS];
 
   if(decoded_val <= 15 )
    {
@@ -406,7 +398,11 @@ uint8_t MIDI_SYSEX_OSC1_RELEASE_CBK(unsigned char *message_buffer, uint16_t buff
       }
     return 1;
    }
-  else return 0;
+  else 
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC1_FILTER_CBK(unsigned char *message_buffer, uint16_t buffer_len)
@@ -415,24 +411,20 @@ uint8_t MIDI_SYSEX_OSC1_FILTER_CBK(unsigned char *message_buffer, uint16_t buffe
 */
  { 
   SID_msg_t SID_msg;
-  uint8_t decoded_buffer[SYSEX_OSC1_FILTER_LEN];
   uint8_t decoded_val, voice_counter;
   uint8_t apply_val = 0;
-  uint16_t decoded_len;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC1_FILTER) || (buffer_len != SYSEX_OSC1_FILTER_LEN))
    return 0;
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  MIDI_debug_dump_sysex(message_buffer, buffer_len, 0);
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
+   return 0;
 
-  if( (MIDI_decode_sysex(message_buffer, buffer_len, &decoded_buffer)) == 0 )
-     return 0;
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
 
-  MIDI_debug_dump_sysex(decoded_buffer, buffer_len, 1);
-
-  decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  decoded_val = message_buffer[SYSEX_DATA_POS];
 
   if(decoded_val == 0)
     {
@@ -446,7 +438,11 @@ uint8_t MIDI_SYSEX_OSC1_FILTER_CBK(unsigned char *message_buffer, uint16_t buffe
     apply_val = (G_current_patch.filter_reso << 4) | decoded_val |
                 G_current_patch.osc2_filter_on | G_current_patch.osc3_filter_on | G_current_patch.filter_ext;
    }
-  else return 0;
+  else 
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
 
   SID_msg.reg_addr = SID_FLT_RESO_ROUTE;
   SID_msg.reg_data = apply_val;
@@ -466,31 +462,33 @@ uint8_t MIDI_SYSEX_OSC2_STATE_CBK(unsigned char *message_buffer, uint16_t buffer
  valid data: one byte - 0 or 1 for oscillator off or on
 */
  {
-  uint8_t decoded_buffer[SYSEX_OSC2_STATE_LEN];
-
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC2_STATE) || (buffer_len != SYSEX_OSC2_STATE_LEN))
    return 0;
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  if((decoded_buffer[SYSEX_DATA_POS] == 0) || (decoded_buffer[SYSEX_DATA_POS] == 1))
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
+
+  if((message_buffer[SYSEX_DATA_POS] == 0) || (message_buffer[SYSEX_DATA_POS] == 1))
    {
-    G_current_patch.osc2_on = decoded_buffer[SYSEX_DATA_POS];
+    G_current_patch.osc2_on = message_buffer[SYSEX_DATA_POS];
     return 1;
    }
   else
-   return 0;
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",message_buffer[SYSEX_DATA_POS]);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC2_FINE_CBK(unsigned char *message_buffer, uint16_t buffer_len)
 /*
- valid data: one signed byte in FINE detune range
+ valid data: one unsigned byte in FINE detune range (0 - 24)
 */
  {
-  uint8_t decoded_buffer[SYSEX_OSC2_FINE_LEN];
   int8_t  decoded_signed_val;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC2_FINE) || (buffer_len != SYSEX_OSC2_FINE_LEN))
@@ -498,10 +496,13 @@ uint8_t MIDI_SYSEX_OSC2_FINE_CBK(unsigned char *message_buffer, uint16_t buffer_
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len - SYSEX_CONTROL_BYTES);
 
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  decoded_signed_val = (int8_t)decoded_buffer[SYSEX_DATA_POS];
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
+
+  decoded_signed_val = (int8_t)message_buffer[SYSEX_DATA_POS];
+  decoded_signed_val -= DETUNE_RANGE;
 
   if((decoded_signed_val >= (DETUNE_RANGE * -1)) && (decoded_signed_val <= DETUNE_RANGE))
    {
@@ -509,7 +510,10 @@ uint8_t MIDI_SYSEX_OSC2_FINE_CBK(unsigned char *message_buffer, uint16_t buffer_
     return 1;
    }
   else
-   return 0;
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_signed_val);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC2_COARSE_CBK(unsigned char *message_buffer, uint16_t buffer_len)
@@ -523,17 +527,20 @@ uint8_t MIDI_SYSEX_OSC2_PW_CBK(unsigned char *message_buffer, uint16_t buffer_le
 */
  {
   SID_msg_t SID_msg_LSB, SID_msg_MSB;
-  uint8_t  decoded_buffer[SYSEX_OSC2_PW_LEN],pw_lo,pw_hi,pw_mask = 255, voice_counter;
+  uint8_t  pw_lo,pw_hi,pw_mask = 255, voice_counter;
   uint16_t decoded_val;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC2_PW) || (buffer_len != SYSEX_OSC2_PW_LEN))
    return 0;
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len - SYSEX_CONTROL_BYTES);
+  
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
+   return 0;
 
-  MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer);
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
 
-  decoded_val = (uint16_t)decoded_buffer[SYSEX_DATA_POS]; /* two bytes */
+  decoded_val = (uint16_t)message_buffer[SYSEX_DATA_POS]; /* two bytes */
 
   if(decoded_val < PW_RANGE)
    {
@@ -557,14 +564,18 @@ uint8_t MIDI_SYSEX_OSC2_PW_CBK(unsigned char *message_buffer, uint16_t buffer_le
      }
     return 1;
    }
-
   else
-   return 0;
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC2_WAVE_CBK(unsigned char *message_buffer, uint16_t buffer_len)
+/*
+ valid data: uint8_t enum WAVEFORM_NOISE || WAVEFORM_PULSE || WAVEFORM_SAWTOOTH || WAVEFORM_TRIANGLE
+*/
  {
-  uint8_t decoded_buffer[SYSEX_OSC2_WAVE_LEN];
   uint8_t decoded_val;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC2_WAVE) || (buffer_len != SYSEX_OSC2_WAVE_LEN))
@@ -572,26 +583,31 @@ uint8_t MIDI_SYSEX_OSC2_WAVE_CBK(unsigned char *message_buffer, uint16_t buffer_
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
+
+  decoded_val = message_buffer[SYSEX_DATA_POS];
 
   if((decoded_val == WAVEFORM_NOISE) || (decoded_val == WAVEFORM_PULSE) ||
-     (decoded_val == WAVEFORM_SAWTOOTH) || (decoded_val == WAVEFORM_PULSE))
+     (decoded_val == WAVEFORM_SAWTOOTH) || (decoded_val == WAVEFORM_TRIANGLE))
    {
     G_current_patch.osc2_wave = decoded_val;
     G_current_patch.osc2_control_reg &=  CLEAR_ALL_WAVEFORMS;
     G_current_patch.osc2_control_reg |= decoded_val;
     return 1;
    }
-  else return 0;
+  else
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
 
  }
 
 uint8_t MIDI_SYSEX_OSC2_RINGMOD_CBK(unsigned char *message_buffer, uint16_t buffer_len)
  {
-  uint8_t decoded_buffer[SYSEX_OSC2_RINGMOD_LEN];
   uint8_t decoded_val;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC2_RINGMOD) || (buffer_len != SYSEX_OSC2_RINGMOD_LEN))
@@ -599,60 +615,76 @@ uint8_t MIDI_SYSEX_OSC2_RINGMOD_CBK(unsigned char *message_buffer, uint16_t buff
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
- decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
 
- if(decoded_val == RINGMOD)
+  decoded_val = message_buffer[SYSEX_DATA_POS];
+
+  if(decoded_val == RINGMOD)
    {
      G_current_patch.osc2_ringmod_on = decoded_val;
      G_current_patch.osc2_control_reg |= decoded_val;
      return 1;
    }
- else if(decoded_val == RINGMOD_CLEAR)
+  else if(decoded_val == RINGMOD_CLEAR)
    {
      G_current_patch.osc2_ringmod_on = decoded_val;
      G_current_patch.osc2_control_reg &= decoded_val;
      return 1;
    }
-  else return 0;
+  else
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC2_SYNC_CBK(unsigned char *message_buffer, uint16_t buffer_len)
+/*
+ valid data: uint8_t RINGMOD or RINGMOD_CLEAR for ring modulator on or off
+*/
  {
-  uint8_t decoded_buffer[SYSEX_OSC2_SYNC_LEN];
   uint8_t decoded_val;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC2_SYNC) || (buffer_len != SYSEX_OSC2_SYNC_LEN))
    return 0;
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
-
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
+  
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
- decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
 
- if(decoded_val == OSC_SYNC)
+  decoded_val = message_buffer[SYSEX_DATA_POS];
+
+  if(decoded_val == OSC_SYNC)
    {
      G_current_patch.osc2_sync_on = decoded_val;
      G_current_patch.osc2_control_reg |= decoded_val;
     return 1;
    }
- else if(decoded_val == OSC_SYNC_CLEAR)
+  else if(decoded_val == OSC_SYNC_CLEAR)
    {
      G_current_patch.osc2_sync_on = decoded_val;
      G_current_patch.osc2_control_reg &= decoded_val;
      return 1;
    }
-  else return 0;
+  else 
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC2_ATTACK_CBK(unsigned char *message_buffer, uint16_t buffer_len)
+ /*
+  valid data: uint8_t 0 - 15 ADSR attack
+ */
  {
   SID_msg_t SID_msg;
-  uint8_t decoded_buffer[SYSEX_OSC2_ATTACK_LEN];
   uint8_t decoded_val, voice_counter;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC2_ATTACK) || (buffer_len != SYSEX_OSC2_ATTACK_LEN))
@@ -660,10 +692,12 @@ uint8_t MIDI_SYSEX_OSC2_ATTACK_CBK(unsigned char *message_buffer, uint16_t buffe
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
+
+  decoded_val = message_buffer[SYSEX_DATA_POS];
 
   if(decoded_val <= 15 )
    {
@@ -677,13 +711,19 @@ uint8_t MIDI_SYSEX_OSC2_ATTACK_CBK(unsigned char *message_buffer, uint16_t buffe
       }
     return 1;
    }
-  else return 0;
+  else 
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC2_DECAY_CBK(unsigned char *message_buffer, uint16_t buffer_len)
+/*
+ valid data: uint8_t 0 - 15 ADSR decay
+*/
  {
   SID_msg_t SID_msg;
-  uint8_t decoded_buffer[SYSEX_OSC2_DECAY_LEN];
   uint8_t decoded_val, voice_counter;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC2_DECAY) || (buffer_len != SYSEX_OSC2_DECAY_LEN))
@@ -691,10 +731,12 @@ uint8_t MIDI_SYSEX_OSC2_DECAY_CBK(unsigned char *message_buffer, uint16_t buffer
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
+
+  decoded_val = message_buffer[SYSEX_DATA_POS];
 
   if(decoded_val <= 15 )
    {
@@ -708,24 +750,32 @@ uint8_t MIDI_SYSEX_OSC2_DECAY_CBK(unsigned char *message_buffer, uint16_t buffer
       }
     return 1;
    }
-  else return 0;
+  else 
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC2_SUSTAIN_CBK(unsigned char *message_buffer, uint16_t buffer_len)
+/*
+ valid data: uint8_t 0 - 15 ADSR sustain
+*/
  {
   SID_msg_t SID_msg;
-  uint8_t decoded_buffer[SYSEX_OSC2_SUSTAIN_LEN];
   uint8_t decoded_val, voice_counter;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC2_SUSTAIN) || (buffer_len != SYSEX_OSC2_SUSTAIN_LEN))
    return 0;
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
-
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
+ 
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
+
+  decoded_val = message_buffer[SYSEX_DATA_POS];
 
   if(decoded_val <= 15 )
    {
@@ -739,13 +789,19 @@ uint8_t MIDI_SYSEX_OSC2_SUSTAIN_CBK(unsigned char *message_buffer, uint16_t buff
      }
     return 1;
    }
-  else return 0;
+  else
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC2_RELEASE_CBK(unsigned char *message_buffer, uint16_t buffer_len)
+/*
+ valid data: uint8_t 0 - 15 ADSR release
+*/
  {
   SID_msg_t SID_msg;
-  uint8_t decoded_buffer[SYSEX_OSC2_RELEASE_LEN];
   uint8_t decoded_val, voice_counter;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC2_RELEASE) || (buffer_len != SYSEX_OSC2_RELEASE_LEN))
@@ -753,10 +809,12 @@ uint8_t MIDI_SYSEX_OSC2_RELEASE_CBK(unsigned char *message_buffer, uint16_t buff
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
+
+  decoded_val = message_buffer[SYSEX_DATA_POS];
 
   if(decoded_val <= 15 )
    {
@@ -770,13 +828,19 @@ uint8_t MIDI_SYSEX_OSC2_RELEASE_CBK(unsigned char *message_buffer, uint16_t buff
       }
     return 1;
    }
-  else return 0;
+  else 
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC2_FILTER_CBK(unsigned char *message_buffer, uint16_t buffer_len)
+/*
+ valid data: uint8_t 0 or FILTER_ROUTING_OSC2
+*/
  {
   SID_msg_t SID_msg;
-  uint8_t decoded_buffer[SYSEX_OSC2_FILTER_LEN];
   uint8_t decoded_val, voice_counter;
   uint8_t apply_val = 0;
 
@@ -785,10 +849,12 @@ uint8_t MIDI_SYSEX_OSC2_FILTER_CBK(unsigned char *message_buffer, uint16_t buffe
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
+
+  decoded_val = message_buffer[SYSEX_DATA_POS];
 
   if(decoded_val == 0)
     {
@@ -802,7 +868,11 @@ uint8_t MIDI_SYSEX_OSC2_FILTER_CBK(unsigned char *message_buffer, uint16_t buffe
     apply_val = (G_current_patch.filter_reso << 4) | G_current_patch.osc1_filter_on |
                 decoded_val | G_current_patch.osc3_filter_on | G_current_patch.filter_ext;
    }
-  else return 0;
+  else 
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
 
   SID_msg.reg_addr = SID_FLT_RESO_ROUTE;
   SID_msg.reg_data = apply_val;
@@ -821,32 +891,34 @@ uint8_t MIDI_SYSEX_OSC3_STATE_CBK(unsigned char *message_buffer, uint16_t buffer
 /*
  valid data: one byte - 0 or 1 for oscillator off or on
 */
- {
-  uint8_t decoded_buffer[SYSEX_OSC3_STATE_LEN];
-
+ { 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC3_STATE) || (buffer_len != SYSEX_OSC3_STATE_LEN))
    return 0;
 
-  SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
+  SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data", buffer_len-SYSEX_CONTROL_BYTES);
 
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  if((decoded_buffer[SYSEX_DATA_POS] == 0) || (decoded_buffer[SYSEX_DATA_POS] == 1))
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
+  
+  if((message_buffer[SYSEX_DATA_POS] == 0) || (message_buffer[SYSEX_DATA_POS] == 1))  
    {
-    G_current_patch.osc3_on = decoded_buffer[SYSEX_DATA_POS];
+    G_current_patch.osc3_on = message_buffer[SYSEX_DATA_POS];
     return 1;
    }
-  else
-   return 0;
+  else 
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",message_buffer[SYSEX_DATA_POS]);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC3_FINE_CBK(unsigned char *message_buffer, uint16_t buffer_len)
 /*
- valid data: one signed byte in FINE detune range
+ valid data: one unsigned byte in 0 - 2*DETUNE_RANGE range (to avoid signed/unsigned conversion)
 */
- {
-  uint8_t decoded_buffer[SYSEX_OSC3_FINE_LEN];
+ { 
   int8_t  decoded_signed_val;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC3_FINE) || (buffer_len != SYSEX_OSC3_FINE_LEN))
@@ -854,22 +926,28 @@ uint8_t MIDI_SYSEX_OSC3_FINE_CBK(unsigned char *message_buffer, uint16_t buffer_
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len - SYSEX_CONTROL_BYTES);
 
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0) 
    return 0;
 
-  decoded_signed_val = (int8_t)decoded_buffer[SYSEX_DATA_POS];
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
 
+  decoded_signed_val = (int8_t)message_buffer[SYSEX_DATA_POS];
+  decoded_signed_val -= DETUNE_RANGE;
+  
   if((decoded_signed_val >= (DETUNE_RANGE * -1)) && (decoded_signed_val <= DETUNE_RANGE))
    {
     G_current_patch.osc3_fine = decoded_signed_val;
     return 1;
    }
   else
-   return 0;
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_signed_val);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC3_COARSE_CBK(unsigned char *message_buffer, uint16_t buffer_len)
- {
+ { 
   return 0;
  }
 
@@ -877,23 +955,26 @@ uint8_t MIDI_SYSEX_OSC3_PW_CBK(unsigned char *message_buffer, uint16_t buffer_le
 /*
  valid data: uint16_t from 0 to 4095
 */
- {
+ { 
   SID_msg_t SID_msg_LSB, SID_msg_MSB;
-  uint8_t  decoded_buffer[SYSEX_OSC3_PW_LEN],pw_lo,pw_hi,pw_mask = 255, voice_counter;
-  uint16_t decoded_val;
+  uint8_t  pw_lo,pw_hi,pw_mask = 255, voice_counter;
+  uint16_t *decoded_val;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC3_PW) || (buffer_len != SYSEX_OSC3_PW_LEN))
    return 0;
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len - SYSEX_CONTROL_BYTES);
 
-  MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer);
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
+   return 0;
 
-  decoded_val = (uint16_t)decoded_buffer[SYSEX_DATA_POS]; /* two bytes */
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
 
-  if(decoded_val < PW_RANGE)
+  decoded_val = (uint16_t *) &message_buffer[SYSEX_DATA_POS]; /* two bytes */
+
+  if(*decoded_val < PW_RANGE)
    {
-    G_current_patch.osc3_pw = decoded_val;
+    G_current_patch.osc3_pw = *decoded_val;
 
     pw_lo = G_current_patch.osc3_pw & pw_mask;
     pw_hi = G_current_patch.osc3_pw >> 8;
@@ -915,12 +996,17 @@ uint8_t MIDI_SYSEX_OSC3_PW_CBK(unsigned char *message_buffer, uint16_t buffer_le
    }
 
   else
-   return 0;
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",*decoded_val);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC3_WAVE_CBK(unsigned char *message_buffer, uint16_t buffer_len)
- {
-  uint8_t decoded_buffer[SYSEX_OSC3_WAVE_LEN];
+/*
+ valid data: uint8_t enum WAVEFORM_NOISE || WAVEFORM_PULSE || WAVEFORM_SAWTOOTH || WAVEFORM_TRIANGLE
+*/
+ { 
   uint8_t decoded_val;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC3_WAVE) || (buffer_len != SYSEX_OSC3_WAVE_LEN))
@@ -928,26 +1014,34 @@ uint8_t MIDI_SYSEX_OSC3_WAVE_CBK(unsigned char *message_buffer, uint16_t buffer_
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
 
-  if((decoded_val == WAVEFORM_NOISE) || (decoded_val == WAVEFORM_PULSE) ||
-     (decoded_val == WAVEFORM_SAWTOOTH) || (decoded_val == WAVEFORM_PULSE))
+  decoded_val = message_buffer[SYSEX_DATA_POS];
+
+  if((decoded_val == WAVEFORM_NOISE) || (decoded_val == WAVEFORM_PULSE) || 
+     (decoded_val == WAVEFORM_SAWTOOTH) || (decoded_val == WAVEFORM_TRIANGLE))
    {
     G_current_patch.osc3_wave = decoded_val;
     G_current_patch.osc3_control_reg &=  CLEAR_ALL_WAVEFORMS;
     G_current_patch.osc3_control_reg |= decoded_val;
     return 1;
    }
-  else return 0;
+  else 
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
 
  }
 
 uint8_t MIDI_SYSEX_OSC3_RINGMOD_CBK(unsigned char *message_buffer, uint16_t buffer_len)
- {
-  uint8_t decoded_buffer[SYSEX_OSC3_RINGMOD_LEN];
+/*
+ valid data: uint8_t RINGMOD or RINGMOD_CLEAR for ring modulator on or off
+*/
+ { 
   uint8_t decoded_val;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC3_RINGMOD) || (buffer_len != SYSEX_OSC3_RINGMOD_LEN))
@@ -955,29 +1049,37 @@ uint8_t MIDI_SYSEX_OSC3_RINGMOD_CBK(unsigned char *message_buffer, uint16_t buff
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
- decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
 
- if(decoded_val == RINGMOD)
+  decoded_val = message_buffer[SYSEX_DATA_POS];
+
+  if(decoded_val == RINGMOD)
    {
      G_current_patch.osc3_ringmod_on = decoded_val;
      G_current_patch.osc3_control_reg |= decoded_val;
      return 1;
    }
- else if(decoded_val == RINGMOD_CLEAR)
+  else if(decoded_val == RINGMOD_CLEAR)
    {
      G_current_patch.osc3_ringmod_on = decoded_val;
      G_current_patch.osc3_control_reg &= decoded_val;
      return 1;
    }
-  else return 0;
+  else 
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC3_SYNC_CBK(unsigned char *message_buffer, uint16_t buffer_len)
- {
-  uint8_t decoded_buffer[SYSEX_OSC3_SYNC_LEN];
+/*
+ valid data: uint8_t OSC_SYNC or OSC_SYNC_CLEAR for oscillator sync on or off
+*/
+ { 
   uint8_t decoded_val;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC3_SYNC) || (buffer_len != SYSEX_OSC3_SYNC_LEN))
@@ -985,47 +1087,57 @@ uint8_t MIDI_SYSEX_OSC3_SYNC_CBK(unsigned char *message_buffer, uint16_t buffer_
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
- decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
 
- if(decoded_val == OSC_SYNC)
+  decoded_val = message_buffer[SYSEX_DATA_POS];
+
+  if(decoded_val == OSC_SYNC)
    {
      G_current_patch.osc3_sync_on = decoded_val;
      G_current_patch.osc3_control_reg |= decoded_val;
     return 1;
    }
- else if(decoded_val == OSC_SYNC_CLEAR)
+  else if(decoded_val == OSC_SYNC_CLEAR)
    {
      G_current_patch.osc3_sync_on = decoded_val;
      G_current_patch.osc3_control_reg &= decoded_val;
      return 1;
    }
-  else return 0;
+  else 
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC3_ATTACK_CBK(unsigned char *message_buffer, uint16_t buffer_len)
- {
+/*
+ valid data: uint8_t 0 - 15 ADSR attack
+*/
+ { 
   SID_msg_t SID_msg;
-  uint8_t decoded_buffer[SYSEX_OSC3_ATTACK_LEN];
   uint8_t decoded_val, voice_counter;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC3_ATTACK) || (buffer_len != SYSEX_OSC3_ATTACK_LEN))
    return 0;
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
-
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
+ 
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
+
+  decoded_val = message_buffer[SYSEX_DATA_POS];
 
   if(decoded_val <= 15 )
    {
     G_current_patch.osc3_adsr_attack = decoded_val;
     SID_msg.reg_addr = SID_OSC3_ATTACK;
-    SID_msg.reg_data = (decoded_val << 4) | G_current_patch.osc3_adsr_decay;
+    SID_msg.reg_data = (decoded_val << 4) | G_current_patch.osc3_adsr_decay;  
     for(voice_counter = 1; voice_counter <= G_inventory_voice_count; voice_counter++)
       {
         SID_msg.SID_addr = G_voice_inventory[voice_counter].address;
@@ -1033,13 +1145,19 @@ uint8_t MIDI_SYSEX_OSC3_ATTACK_CBK(unsigned char *message_buffer, uint16_t buffe
       }
     return 1;
    }
-  else return 0;
+  else
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC3_DECAY_CBK(unsigned char *message_buffer, uint16_t buffer_len)
- {
+/*
+ valid data: uint8_t 0 - 15 ADSR decay
+*/
+ { 
   SID_msg_t SID_msg;
-  uint8_t decoded_buffer[SYSEX_OSC3_DECAY_LEN];
   uint8_t decoded_val, voice_counter;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC3_DECAY) || (buffer_len != SYSEX_OSC3_DECAY_LEN))
@@ -1047,10 +1165,12 @@ uint8_t MIDI_SYSEX_OSC3_DECAY_CBK(unsigned char *message_buffer, uint16_t buffer
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
-   return 0;
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
+     return 0;
 
-  decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
+
+  decoded_val = message_buffer[SYSEX_DATA_POS];
 
   if(decoded_val <= 15 )
    {
@@ -1064,13 +1184,19 @@ uint8_t MIDI_SYSEX_OSC3_DECAY_CBK(unsigned char *message_buffer, uint16_t buffer
       }
     return 1;
    }
-  else return 0;
+  else
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC3_SUSTAIN_CBK(unsigned char *message_buffer, uint16_t buffer_len)
- {
+/*
+ valid data: uint8_t 0 - 15 ADSR sustain
+*/
+ { 
   SID_msg_t SID_msg;
-  uint8_t decoded_buffer[SYSEX_OSC3_SUSTAIN_LEN];
   uint8_t decoded_val, voice_counter;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC3_SUSTAIN) || (buffer_len != SYSEX_OSC3_SUSTAIN_LEN))
@@ -1078,10 +1204,12 @@ uint8_t MIDI_SYSEX_OSC3_SUSTAIN_CBK(unsigned char *message_buffer, uint16_t buff
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
-   return 0;
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
+     return 0;
 
-  decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
+
+  decoded_val = message_buffer[SYSEX_DATA_POS];
 
   if(decoded_val <= 15 )
    {
@@ -1095,13 +1223,19 @@ uint8_t MIDI_SYSEX_OSC3_SUSTAIN_CBK(unsigned char *message_buffer, uint16_t buff
      }
     return 1;
    }
-  else return 0;
+  else
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC3_RELEASE_CBK(unsigned char *message_buffer, uint16_t buffer_len)
- {
+/* 
+ valid data: uint8_t 0 - 15 ADSR release
+*/
+ { 
   SID_msg_t SID_msg;
-  uint8_t decoded_buffer[SYSEX_OSC3_RELEASE_LEN];
   uint8_t decoded_val, voice_counter;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC3_RELEASE) || (buffer_len != SYSEX_OSC3_RELEASE_LEN))
@@ -1109,10 +1243,12 @@ uint8_t MIDI_SYSEX_OSC3_RELEASE_CBK(unsigned char *message_buffer, uint16_t buff
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
+
+  decoded_val = message_buffer[SYSEX_DATA_POS];
 
   if(decoded_val <= 15 )
    {
@@ -1126,14 +1262,20 @@ uint8_t MIDI_SYSEX_OSC3_RELEASE_CBK(unsigned char *message_buffer, uint16_t buff
       }
     return 1;
    }
-  else return 0;
+  else 
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
  }
 
 uint8_t MIDI_SYSEX_OSC3_FILTER_CBK(unsigned char *message_buffer, uint16_t buffer_len)
- {
+/*
+ valid data: uint8_t FILTER_ROUTING_OSC1 or 0 for filter on or off
+*/
+ { 
   SID_msg_t SID_msg;
-  uint8_t decoded_buffer[SYSEX_OSC3_FILTER_LEN];
-  uint8_t decoded_val,voice_counter;
+  uint8_t decoded_val, voice_counter;
   uint8_t apply_val = 0;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_OSC3_FILTER) || (buffer_len != SYSEX_OSC3_FILTER_LEN))
@@ -1141,24 +1283,30 @@ uint8_t MIDI_SYSEX_OSC3_FILTER_CBK(unsigned char *message_buffer, uint16_t buffe
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
+
+  decoded_val = message_buffer[SYSEX_DATA_POS];
 
   if(decoded_val == 0)
     {
      G_current_patch.osc3_filter_on = decoded_val;
-     apply_val = (G_current_patch.filter_reso << 4) | G_current_patch.osc1_filter_on |
-                 G_current_patch.osc2_filter_on | decoded_val | G_current_patch.filter_ext;
+     apply_val = (G_current_patch.filter_reso << 4) | decoded_val | 
+                 G_current_patch.osc1_filter_on | G_current_patch.osc2_filter_on | G_current_patch.filter_ext;
     }
   else if(decoded_val == FILTER_ROUTING_OSC3)
    {
     G_current_patch.osc3_filter_on = decoded_val;
-    apply_val = (G_current_patch.filter_reso << 4) | G_current_patch.osc1_filter_on |
-                G_current_patch.osc2_filter_on | decoded_val | G_current_patch.filter_ext;
+    apply_val = (G_current_patch.filter_reso << 4) | decoded_val |
+                G_current_patch.osc1_filter_on | G_current_patch.osc2_filter_on | G_current_patch.filter_ext;
    }
-  else return 0;
+  else 
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
 
   SID_msg.reg_addr = SID_FLT_RESO_ROUTE;
   SID_msg.reg_data = apply_val;
@@ -1174,9 +1322,11 @@ uint8_t MIDI_SYSEX_OSC3_FILTER_CBK(unsigned char *message_buffer, uint16_t buffe
 /* filter control: */
 
 uint8_t MIDI_SYSEX_FLT_MODE_CBK(unsigned char *message_buffer, uint16_t buffer_len)
+/* 
+ valid data: uint8_t enum FILTER_OFF | FILTER_HIGHPASS | FILTER_BANDPASS | FILTER_LOWPASS
+*/
  { 
   SID_msg_t SID_msg;
-  uint8_t decoded_buffer[SYSEX_FLT_MODE_LEN];
   uint8_t decoded_val,voice_counter;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_FLT_MODE) || (buffer_len != SYSEX_FLT_MODE_LEN))
@@ -1184,10 +1334,12 @@ uint8_t MIDI_SYSEX_FLT_MODE_CBK(unsigned char *message_buffer, uint16_t buffer_l
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
+
+  decoded_val = message_buffer[SYSEX_DATA_POS];
 
   if((decoded_val == FILTER_OFF) || (decoded_val == FILTER_HIGHPASS) || (decoded_val == FILTER_BANDPASS) ||
      (decoded_val == FILTER_LOWPASS))
@@ -1202,14 +1354,20 @@ uint8_t MIDI_SYSEX_FLT_MODE_CBK(unsigned char *message_buffer, uint16_t buffer_l
       }   
     
    }
-  else return 0;
+  else 
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
 
  }
 
 uint8_t MIDI_SYSEX_FLT_RESO_CBK(unsigned char *message_buffer, uint16_t buffer_len)
+/*
+ valid data: uint8_t  0 - 15
+*/
  { 
   SID_msg_t SID_msg;
-  uint8_t decoded_buffer[SYSEX_FLT_RESO_LEN];
   uint8_t decoded_val,voice_counter;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_FLT_RESO) || (buffer_len != SYSEX_FLT_RESO_LEN))
@@ -1217,16 +1375,18 @@ uint8_t MIDI_SYSEX_FLT_RESO_CBK(unsigned char *message_buffer, uint16_t buffer_l
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
+
+  decoded_val = message_buffer[SYSEX_DATA_POS];
 
   if(decoded_val <= 15)
    {
     G_current_patch.filter_reso = decoded_val;
     SID_msg.reg_addr = SID_FLT_RESO_ROUTE;
-    SID_msg.reg_data = decoded_val | G_current_patch.osc1_filter_on | G_current_patch.osc2_filter_on |
+    SID_msg.reg_data = decoded_val << 4 | G_current_patch.osc1_filter_on | G_current_patch.osc2_filter_on |
                        G_current_patch.osc3_filter_on | G_current_patch.filter_ext;
     for(voice_counter = 1; voice_counter <= G_inventory_voice_count; voice_counter++)
      {
@@ -1235,31 +1395,39 @@ uint8_t MIDI_SYSEX_FLT_RESO_CBK(unsigned char *message_buffer, uint16_t buffer_l
      }
 
    }
-  else return 0;
-
+  else 
+  {
+   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+   return 0;
+  }
  }
 
 uint8_t MIDI_SYSEX_FLT_CUTOFF_CBK(unsigned char *message_buffer, uint16_t buffer_len)
+/*
+ valid data: uint16_t 0 - 4095 
+*/
  { 
   SID_msg_t SID_msg_LSB, SID_msg_MSB;
-  uint8_t decoded_buffer[SYSEX_FLT_CUTOFF_LEN], cutoff_lo, cutoff_hi, c_mask=255;
-  uint16_t decoded_val,voice_counter;
+  uint8_t cutoff_lo, cutoff_hi, c_mask=255;
+  uint16_t *decoded_val,voice_counter;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_FLT_CUTOFF) || (buffer_len != SYSEX_FLT_CUTOFF_LEN))
     return 0;
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  decoded_val = (uint16_t)decoded_buffer[SYSEX_DATA_POS];
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
 
-  if(decoded_val <= CUTOFF_RANGE)
+  decoded_val = (uint16_t *)&message_buffer[SYSEX_DATA_POS];
+
+  if(*decoded_val <= CUTOFF_RANGE)
    {
-    G_current_patch.filter_cutoff = decoded_val;
-    cutoff_lo = decoded_val & c_mask;
-    cutoff_hi = decoded_val >> 8;
+    G_current_patch.filter_cutoff = *decoded_val;
+    cutoff_lo = *decoded_val & c_mask;
+    cutoff_hi = *decoded_val >> 3;
 
     SID_msg_LSB.reg_addr = SID_FLT_CUTOFF_LO;
     SID_msg_LSB.reg_data = cutoff_lo;
@@ -1277,14 +1445,20 @@ uint8_t MIDI_SYSEX_FLT_CUTOFF_CBK(unsigned char *message_buffer, uint16_t buffer
     return 1;      
 
    }
-  else return 0;
+  else 
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",*decoded_val);
+    return 0;
+   }
 
  }
 
 uint8_t MIDI_SYSEX_FLT_EXT_CBK(unsigned char *message_buffer, uint16_t buffer_len)
+/*
+ valid data: 0 or FILTER_ROUTING_EXT
+*/
  { 
   SID_msg_t SID_msg;
-  uint8_t decoded_buffer[SYSEX_OSC3_FILTER_LEN];
   uint8_t decoded_val,voice_counter;
   uint8_t apply_val = 0;
 
@@ -1293,10 +1467,12 @@ uint8_t MIDI_SYSEX_FLT_EXT_CBK(unsigned char *message_buffer, uint16_t buffer_le
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
+
+  decoded_val = message_buffer[SYSEX_DATA_POS];
 
   if(decoded_val == 0)
    {
@@ -1310,7 +1486,11 @@ uint8_t MIDI_SYSEX_FLT_EXT_CBK(unsigned char *message_buffer, uint16_t buffer_le
      apply_val = (G_current_patch.filter_reso << 4) | G_current_patch.osc1_filter_on |
                  G_current_patch.osc2_filter_on | G_current_patch.osc3_filter_on | decoded_val;
    }
-  else return 0;
+  else 
+   {
+    SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: invalid message value (%d)",decoded_val);
+    return 0;
+   }
 
   SID_msg.reg_addr = SID_FLT_RESO_ROUTE;
   SID_msg.reg_data = apply_val;
@@ -1326,9 +1506,11 @@ uint8_t MIDI_SYSEX_FLT_EXT_CBK(unsigned char *message_buffer, uint16_t buffer_le
 /* miscellaneous parameters control: */
 
 uint8_t MIDI_SYSEX_VOLUME_CBK(unsigned char *message_buffer, uint16_t buffer_len)
+/*
+ valid data uint8_t 0 - 15
+*/
  { 
   SID_msg_t SID_msg;
-  uint8_t decoded_buffer[SYSEX_VOLUME_LEN];
   uint8_t decoded_val,voice_counter;
 
   if((message_buffer[SYSEX_CODE_POS] != SYSEX_VOLUME) || (buffer_len != SYSEX_VOLUME_LEN))
@@ -1336,10 +1518,12 @@ uint8_t MIDI_SYSEX_VOLUME_CBK(unsigned char *message_buffer, uint16_t buffer_len
 
   SYS_debug(DEBUG_HIGH,"MIDI_SYSEX_CBK: decoding %d bytes of sysex data",buffer_len-SYSEX_CONTROL_BYTES);
 
-  if(!MIDI_decode_sysex(&message_buffer, buffer_len, &decoded_buffer))
+  if( (MIDI_7bit_unshift_uint16_t(&message_buffer[SYSEX_DATA_POS])) == 0)
    return 0;
 
-  decoded_val = decoded_buffer[SYSEX_DATA_POS];
+  MIDI_debug_dump_sysex(message_buffer, buffer_len, 1);
+
+  decoded_val = message_buffer[SYSEX_DATA_POS];
 
   if(decoded_val <= 15 )
     {

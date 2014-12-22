@@ -40,7 +40,7 @@ void LIB_SID_tx_thread(void) /* SID writer thread  */
             msg_byte_lo = bit_mask & SID_msg_in.reg_data;
             msg_byte_hi = SID_msg_in.reg_data >> 8;
 
-           SYS_debug(DEBUG_HIGH,"SID_write_msg: about to write %x, %x into SID at 0x%x...",SID_msg_in.reg_data, SID_msg_in.reg_addr, SID_msg_in.SID_addr);
+           SYS_debug(DEBUG_HIGH,"SID_write_msg: about to write [data 0x%x, addr 0x%x] into SID at 0x%x...",SID_msg_in.reg_data, SID_msg_in.reg_addr, SID_msg_in.SID_addr);
 
            if(SID_msg_in.reg_data > 255)
             {

@@ -17,9 +17,10 @@ uint8_t MIDI_is_partial_message(unsigned char *buffer, uint8_t len)
 
   while(!finished)
    {
-
      midi_msgtype = buffer[buffer_position] & 0b11110000;
-
+     if(G_MIDI_msg_lengths[midi_msgtype] == 0)
+      return 0;  /* something is wrong - data seems to be corrupted - return and let upper layers take care of this */
+     
      if(midi_msgtype == 0xF0)   /* sysex - variable lenghth */
       {   
        sysex_len = MIDI_get_sysex_len(buffer, len);
@@ -30,7 +31,7 @@ uint8_t MIDI_is_partial_message(unsigned char *buffer, uint8_t len)
       }
      else
       buffer_position += G_MIDI_msg_lengths[midi_msgtype];
-
+ 
      if(buffer_position > len) return 1;
      if(buffer_position == len) return 0;
 

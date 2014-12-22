@@ -13,7 +13,7 @@
 
 #define I2C_VOICE_BUS 1
 #define I2C_AUX_BUS 0
-#define QSID_I2C_CLOCK 1000000
+#define QSID_I2C_CLOCK 800000
 
 #else
 

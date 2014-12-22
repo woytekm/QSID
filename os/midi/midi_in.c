@@ -3,15 +3,13 @@
 #include "QSID_live_settings.h"
 #include "midi.h"
 
-
-
 void MIDI_IN_thread(void)
  {
 
    int pollrc,end=0;
    uint8_t free_SID, midi_channel, midi_msgtype, last_message_incomplete, i;
-   size_t rc;
-   unsigned char midi_message_buffer[1024];
+   size_t rc, rcdelta;
+   unsigned char midi_message_buffer[MIDI_IN_BUFLEN];
    struct pollfd fds;
  
    last_message_incomplete = 1;
@@ -46,7 +44,7 @@ void MIDI_IN_thread(void)
        {
 
          rc = read(G_MIDI_fd, midi_message_buffer, sizeof(midi_message_buffer));
-
+         SYS_debug(DEBUG_HIGH,"MIDI_in_thread: serial read received %d bytes",rc);
          if (rc > 0)
           {
 
@@ -54,7 +52,12 @@ void MIDI_IN_thread(void)
             while(last_message_incomplete)   /* partial midi message reassemblyi. TODO: add midi_message_buffer overflow check */
              {
               if(MIDI_is_partial_message(midi_message_buffer, rc))
-                rc += read(G_MIDI_fd, midi_message_buffer+rc, sizeof(midi_message_buffer) - rc );  
+               {
+                rcdelta += read(G_MIDI_fd, midi_message_buffer+rc, sizeof(midi_message_buffer) - rc );  
+                if(rcdelta == 0) continue;  /* second read is empty - seems like truncated message - discard it */
+                else if( (rc + rcdelta) >= MIDI_IN_BUFLEN) continue; /* next read will probably cause buffer overflow - discard */
+                else rc += rcdelta;
+               } 
               else last_message_incomplete = 0;
              }
 
@@ -66,6 +69,7 @@ void MIDI_IN_thread(void)
 
            bzero(midi_message_buffer, rc);
            last_message_incomplete = 1;
+           rc = 0;
 
           } /* if(rc > 0)  */
 

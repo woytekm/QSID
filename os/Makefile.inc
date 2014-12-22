@@ -2,5 +2,5 @@
 
 MAKE     = make
 CC       = gcc
-CFLAGS   = -g -O2 -DI2C_BCM2835 -DQSID_RPI -Wall -Wno-comment -pedantic
+CFLAGS   = -g -O2 -DI2C_BCM2835 -DQSID_RPI #-Wall -Wno-comment -pedantic
 

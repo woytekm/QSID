@@ -26,8 +26,22 @@ callback_ptr_t G_sysex_handlers[127];
 
 /* lengths of messages are counted with heading/trailing 0xF0 0xF7, manufacturer's ID, sysex code, device ID  - entire sysex msg */
 
+
+#define SYSEX_COMP_ATTACK      0x1A
+#define SYSEX_COMP_ATTACK_LEN  8
+
+#define SYSEX_COMP_DECAY       0x1B
+#define SYSEX_COMP_DECAY_LEN   8
+
+#define SYSEX_COMP_SUSTAIN     0x1C
+#define SYSEX_COMP_SUSTAIN_LEN 8
+
+#define SYSEX_COMP_RELEASE     0x1D
+#define SYSEX_COMP_RELEASE_LEN 8
+
 #define SYSEX_OSC1_STATE       0x1E
 #define SYSEX_OSC1_STATE_LEN   8
+
 
 #define SYSEX_OSC1_FINE        0x1F
 #define SYSEX_OSC1_FINE_LEN    8
@@ -36,7 +50,7 @@ callback_ptr_t G_sysex_handlers[127];
 #define SYSEX_OSC1_COARSE_LEN  8
 
 #define SYSEX_OSC1_PW          0x21
-#define SYSEX_OSC1_PW_LEN      10
+#define SYSEX_OSC1_PW_LEN      8
 
 #define SYSEX_OSC1_WAVE        0x22
 #define SYSEX_OSC1_WAVE_LEN    8
@@ -74,7 +88,7 @@ callback_ptr_t G_sysex_handlers[127];
 #define SYSEX_OSC2_COARSE_LEN  8
 
 #define SYSEX_OSC2_PW          0x36
-#define SYSEX_OSC2_PW_LEN      10
+#define SYSEX_OSC2_PW_LEN      8
 
 #define SYSEX_OSC2_WAVE        0x37
 #define SYSEX_OSC2_WAVE_LEN    8
@@ -112,7 +126,7 @@ callback_ptr_t G_sysex_handlers[127];
 #define SYSEX_OSC3_COARSE_LEN  8
 
 #define SYSEX_OSC3_PW          0x4B
-#define SYSEX_OSC3_PW_LEN      10
+#define SYSEX_OSC3_PW_LEN      8
 
 #define SYSEX_OSC3_WAVE        0x4C
 #define SYSEX_OSC3_WAVE_LEN    8
@@ -147,7 +161,7 @@ callback_ptr_t G_sysex_handlers[127];
 #define SYSEX_FLT_RESO_LEN     8
 
 #define SYSEX_FLT_CUTOFF       0x5F
-#define SYSEX_FLT_CUTOFF_LEN   10
+#define SYSEX_FLT_CUTOFF_LEN   8
 
 #define SYSEX_FLT_EXT          0x60
 #define SYSEX_FLT_EXT_LEN      8
