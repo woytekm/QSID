@@ -19,6 +19,7 @@
 #include <pthread.h>
 #include <string.h>
 #include <stdlib.h>
+#include <signal.h>
 
 /* serial port includes  */
 #include <termio.h>

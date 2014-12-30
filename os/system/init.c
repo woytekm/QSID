@@ -20,6 +20,7 @@
      G_QSID_live_settings.MIDI_receive_channel = 1;
 
      SYS_debug(DEBUG_LOW,"SYS_init: registering sysex handlers...");
+
      MIDI_register_sysex_handlers();
 
      MIDI_init_MIDI_msg_lenghts();

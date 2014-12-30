@@ -90,13 +90,19 @@ int16_t LIB_SID_oscillator_detune(uint8_t MIDI_note, int8_t osc_detune)
 
 
 
-void LIB_SID_note_on(uint8_t MIDI_note, uint8_t board_address)
+void LIB_SID_note_on(uint8_t MIDI_note, uint8_t v_id, uint8_t board_address)
  {
 
    int8_t detune_osc1, detune_osc2, detune_osc3;
 
    SID_msg_t SID_OSC1_msg, SID_OSC2_msg, SID_OSC3_msg;
-   
+  
+   /* reset silencers for this voice */
+
+   pthread_kill(G_QSID_tasks[(1 << 4) | v_id].task_id, SIGALRM);
+   pthread_kill(G_QSID_tasks[(2 << 4) | v_id].task_id, SIGALRM);
+   pthread_kill(G_QSID_tasks[(3 << 4) | v_id].task_id, SIGALRM);
+ 
    /* load pitch registers (+detune value from patch), and then trigger ADSR on all three oscillators at once */
 
    SID_OSC1_msg.reg_data = G_MIDI_to_SID_reg[MIDI_note+G_current_patch.octave_transposition] + LIB_SID_oscillator_detune(MIDI_note, G_current_patch.osc1_fine);
@@ -137,7 +143,7 @@ void LIB_SID_note_on(uint8_t MIDI_note, uint8_t board_address)
  }
 
 
-void LIB_SID_OSC1_note_on(uint16_t SID_osc_pitch, uint8_t board_address)
+void LIB_SID_OSC1_note_on(uint16_t SID_osc_pitch, uint8_t v_id, uint8_t board_address)
  {
  
    /* set oscillator pitch and set GATE bit on oscillator 1 */
@@ -156,7 +162,7 @@ void LIB_SID_OSC1_note_on(uint16_t SID_osc_pitch, uint8_t board_address)
 
  }
 
-void LIB_SID_OSC2_note_on(uint16_t SID_osc_pitch, uint8_t board_address)
+void LIB_SID_OSC2_note_on(uint16_t SID_osc_pitch, uint8_t v_id, uint8_t board_address)
  {
 
    /* set oscillator pitch and set GATE bit on oscillator 2 */
@@ -175,7 +181,7 @@ void LIB_SID_OSC2_note_on(uint16_t SID_osc_pitch, uint8_t board_address)
 
  }
 
-void LIB_SID_OSC3_note_on(uint16_t SID_osc_pitch, uint8_t board_address)
+void LIB_SID_OSC3_note_on(uint16_t SID_osc_pitch, uint8_t v_id, uint8_t board_address)
  {
 
    /* set oscillator pitch and set GATE bit on oscillator 3 */
@@ -195,12 +201,13 @@ void LIB_SID_OSC3_note_on(uint16_t SID_osc_pitch, uint8_t board_address)
  }
 
 
-void LIB_SID_note_off(uint8_t board_address)
+void LIB_SID_note_off(uint8_t v_id, uint8_t board_address)
  {
 
-  /* clear GATE bit on active oscillators */
-
+  /* clear GATE bit on active oscillators, notify silencer threads */
+  
   SID_msg_t SID_msg;
+  uint8_t silencer_msg = 1;
 
   SID_msg.SID_addr = board_address;
 
@@ -209,6 +216,7 @@ void LIB_SID_note_off(uint8_t board_address)
     SID_msg.reg_data = G_current_patch.osc1_control_reg;
     SID_msg.reg_addr = SID_OSC1_CTRL;
     write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t)); 
+    write(G_QSID_tasks[(1 << 4) | v_id].input_pipe[1], &silencer_msg, 1);
    }
 
   if(G_current_patch.osc2_on)
@@ -216,6 +224,7 @@ void LIB_SID_note_off(uint8_t board_address)
     SID_msg.reg_data = G_current_patch.osc2_control_reg;
     SID_msg.reg_addr = SID_OSC2_CTRL;
     write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+    write(G_QSID_tasks[(2 << 4) | v_id].input_pipe[1], &silencer_msg, 1);
    }
  
   if(G_current_patch.osc3_on)
@@ -223,6 +232,7 @@ void LIB_SID_note_off(uint8_t board_address)
     SID_msg.reg_data = G_current_patch.osc3_control_reg;
     SID_msg.reg_addr = SID_OSC3_CTRL;
     write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+    write(G_QSID_tasks[(3 << 4) | v_id].input_pipe[1], &silencer_msg, 1);
    }
 
  }

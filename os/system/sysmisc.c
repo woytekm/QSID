@@ -54,11 +54,20 @@ void SYS_debug(uint8_t debug_level, char *debug_msg, ...)
    
  }
 
+uint64_t SYS_get_timestamp() 
+ {
+  struct timeval tv;
+  gettimeofday(&tv,NULL);
+  return tv.tv_sec*(uint64_t)1000000+tv.tv_usec;
+ }
 
+int8_t msleep(uint16_t ms) 
+ {
+  struct timespec time;
+  int8_t nanosleep_res;
 
-uint64_t SYS_get_timestamp() {
-    struct timeval tv;
-    gettimeofday(&tv,NULL);
-    return tv.tv_sec*(uint64_t)1000000+tv.tv_usec;
-}
-
+  time.tv_sec = ms / 1000;
+  time.tv_nsec = (ms % 1000) * (1000 * 1000);
+  nanosleep_res = nanosleep(&time,NULL);
+  return nanosleep_res;
+ }

@@ -8,7 +8,7 @@
 */
 
 
-pthread_t SYS_start_task(uint8_t task_slot_id, void (*task_function)(), int scheduling_policy, int priority)
+pthread_t SYS_start_task(uint8_t task_slot_id, void (*task_function)(), void *task_args, int scheduling_policy, int priority)
  {
 
    pthread_t new_task;
@@ -21,7 +21,7 @@ pthread_t SYS_start_task(uint8_t task_slot_id, void (*task_function)(), int sche
    if(pipe(G_QSID_tasks[task_slot_id].input_pipe) == -1)
      SYS_debug(DEBUG_NORMAL,"SYS_start_task: warning: cannot create create input pipe for task %x",task_function);
 
-   if(pthread_create(&new_task, &new_task_attr, task_function, NULL))
+   if(pthread_create(&new_task, &new_task_attr, task_function, task_args))
     {
      SYS_debug(DEBUG_NORMAL,"SYS_start_task: cannot start task %x",task_function);
      return -1;
