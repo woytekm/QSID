@@ -1,3 +1,4 @@
+#include "QSID_config.h"
 #include "common.h"
 #include "defs.h"
 #include "inventory.h"
@@ -6,6 +7,8 @@
 #include "SID_writer.h"
 #include "patch.h"
 #include "silencer.h"
+
+#ifdef USE_SILENCERS
 
 void SYNTH_SIGALRM_empty(int sig)
  {}
@@ -79,8 +82,11 @@ void SYNTH_oscillator_silencer(void *input_arg)
        if(*o_state)   /* is this oscillator active? */
         {
          SYS_debug(DEBUG_HIGH,"SYNTH_oscillator_silencer: release trigger for V%dO%d",v_id, o_id);
-         if(usleep( (SID_release_to_msec[*rel_time]*1000) ) == -1) /* if usleep returned -1 - it was interrupted by SIGALRM */
+         if(usleep( (SID_release_to_msec[*rel_time]*1050) ) == -1) /* if usleep returned -1 - it was interrupted by SIGALRM */
+          {
+           SYS_debug(DEBUG_HIGH,"SYNTH_oscillator_silencer: voice reused during release phase - aborting silencing V%dO%d",v_id, o_id);
            continue;
+          }
          else
           {
            SYS_debug(DEBUG_HIGH,"SYNTH_oscillator_silencer: silencing V%dO%d",v_id, o_id);
@@ -93,3 +99,7 @@ void SYNTH_oscillator_silencer(void *input_arg)
 
     }
  }
+
+#endif
+
+

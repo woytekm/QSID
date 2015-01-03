@@ -30,7 +30,7 @@ uint8_t SYNTH_get_free_voice(void)
   /* kill oldest playing note and return it's voice as free  */
 
   SYS_debug(DEBUG_HIGH,"SYNTH_get_free_voice: no free voices: killing oldest note (%d, %d)\n",oldest_playing_voice, oldest_playing_note);
-  SYNTH_note_off(oldest_playing_note);
+  SYNTH_note_off(oldest_playing_note, 0);
 
   return oldest_playing_voice;
 

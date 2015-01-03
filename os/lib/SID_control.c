@@ -1,3 +1,4 @@
+#include "QSID_config.h"
 #include "common.h"
 #include "defs.h"
 #include "SID_writer.h"
@@ -30,19 +31,19 @@ void LIB_apply_demo_patch(uint8_t board_address)
    if(write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t)) == -1)
     SYS_debug(DEBUG_NORMAL,"LIB_apply_demo_patch: pipe write error: %d",errno);
 
-   SID_msg.reg_addr = SID_OSC1_SUSTAIN; SID_msg.reg_data = 16;
+   SID_msg.reg_addr = SID_OSC1_SUSTAIN; SID_msg.reg_data = 15;
    write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
 
    SID_msg.reg_addr = SID_OSC2_ATTACK; SID_msg.reg_data = 7;
    write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
 
-   SID_msg.reg_addr = SID_OSC2_SUSTAIN; SID_msg.reg_data = 16;
+   SID_msg.reg_addr = SID_OSC2_SUSTAIN; SID_msg.reg_data = 15;
    write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
  
    SID_msg.reg_addr = SID_OSC3_ATTACK; SID_msg.reg_data = 7;
    write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
 
-   SID_msg.reg_addr = SID_OSC3_SUSTAIN; SID_msg.reg_data = 16;
+   SID_msg.reg_addr = SID_OSC3_SUSTAIN; SID_msg.reg_data = 15;
    write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
 
    SID_msg.reg_addr = SID_FLT_MODE_VOL; SID_msg.reg_data = 31;
@@ -55,8 +56,8 @@ void LIB_apply_demo_patch(uint8_t board_address)
    G_current_patch.osc3_fine = 0;
 
    G_current_patch.osc1_on = 1;
-   G_current_patch.osc2_on = 1;
-   G_current_patch.osc3_on = 1;
+   G_current_patch.osc2_on = 0;
+   G_current_patch.osc3_on = 0;
  
    G_current_patch.LFO1_rate = 100;  
 
@@ -96,31 +97,47 @@ void LIB_SID_note_on(uint8_t MIDI_note, uint8_t v_id, uint8_t board_address)
    int8_t detune_osc1, detune_osc2, detune_osc3;
 
    SID_msg_t SID_OSC1_msg, SID_OSC2_msg, SID_OSC3_msg;
-  
+ 
+#ifdef USE_SILENCERS 
    /* reset silencers for this voice */
 
    pthread_kill(G_QSID_tasks[(1 << 4) | v_id].task_id, SIGALRM);
    pthread_kill(G_QSID_tasks[(2 << 4) | v_id].task_id, SIGALRM);
    pthread_kill(G_QSID_tasks[(3 << 4) | v_id].task_id, SIGALRM);
- 
-   /* load pitch registers (+detune value from patch), and then trigger ADSR on all three oscillators at once */
 
+#endif
+   SID_OSC1_msg.SID_addr = SID_OSC2_msg.SID_addr = SID_OSC3_msg.SID_addr = board_address;
+
+   //SID_OSC1_msg.reg_data = 0;
+   //SID_OSC1_msg.reg_addr = SID_OSC1_SUSTAIN;
+   //write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_OSC1_msg, sizeof(SID_msg_t));
+   //SID_OSC1_msg.reg_data = (G_current_patch.osc1_adsr_sustain << 4) | G_current_patch.osc1_adsr_release;
+   //write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_OSC1_msg, sizeof(SID_msg_t));
+
+   //SID_OSC2_msg.reg_data = 0;
+   //SID_OSC2_msg.reg_addr = SID_OSC2_SUSTAIN;
+   //write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_OSC2_msg, sizeof(SID_msg_t));
+   //SID_OSC2_msg.reg_data = (G_current_patch.osc2_adsr_sustain << 4) | G_current_patch.osc2_adsr_release;
+   //write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_OSC2_msg, sizeof(SID_msg_t));
+
+   //SID_OSC3_msg.reg_data = 0;
+   //SID_OSC3_msg.reg_addr = SID_OSC3_SUSTAIN;
+   //write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_OSC3_msg, sizeof(SID_msg_t));
+   //SID_OSC3_msg.reg_data = (G_current_patch.osc3_adsr_sustain << 4) | G_current_patch.osc3_adsr_release;
+   //write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_OSC3_msg, sizeof(SID_msg_t));
+
+   /* load pitch registers (+detune value from patch), and then trigger ADSR on all three oscillators at once */
+   
    SID_OSC1_msg.reg_data = G_MIDI_to_SID_reg[MIDI_note+G_current_patch.octave_transposition] + LIB_SID_oscillator_detune(MIDI_note, G_current_patch.osc1_fine);
    SID_OSC1_msg.reg_addr = SID_OSC1_FREQ_LO;
-   SID_OSC1_msg.SID_addr = board_address;
-
    write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_OSC1_msg, sizeof(SID_msg_t));
 
    SID_OSC2_msg.reg_data = G_MIDI_to_SID_reg[MIDI_note+G_current_patch.octave_transposition] + LIB_SID_oscillator_detune(MIDI_note, G_current_patch.osc2_fine);
    SID_OSC2_msg.reg_addr = SID_OSC2_FREQ_LO;
-   SID_OSC2_msg.SID_addr = board_address;
-
    write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_OSC2_msg, sizeof(SID_msg_t));
 
    SID_OSC3_msg.reg_data = G_MIDI_to_SID_reg[MIDI_note+G_current_patch.octave_transposition] + LIB_SID_oscillator_detune(MIDI_note, G_current_patch.osc3_fine);
    SID_OSC3_msg.reg_addr = SID_OSC3_FREQ_LO;
-   SID_OSC3_msg.SID_addr = board_address;
-
    write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_OSC3_msg, sizeof(SID_msg_t));
 
    SID_OSC1_msg.reg_data = G_current_patch.osc1_control_reg | 1;  /* set GATE bit */
@@ -201,7 +218,7 @@ void LIB_SID_OSC3_note_on(uint16_t SID_osc_pitch, uint8_t v_id, uint8_t board_ad
  }
 
 
-void LIB_SID_note_off(uint8_t v_id, uint8_t board_address)
+void LIB_SID_note_off(uint8_t v_id, uint8_t board_address, uint8_t use_silencer)
  {
 
   /* clear GATE bit on active oscillators, notify silencer threads */
@@ -216,7 +233,10 @@ void LIB_SID_note_off(uint8_t v_id, uint8_t board_address)
     SID_msg.reg_data = G_current_patch.osc1_control_reg;
     SID_msg.reg_addr = SID_OSC1_CTRL;
     write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t)); 
-    write(G_QSID_tasks[(1 << 4) | v_id].input_pipe[1], &silencer_msg, 1);
+#ifdef USE_SILENCERS
+    if(use_silencer)
+     write(G_QSID_tasks[(1 << 4) | v_id].input_pipe[1], &silencer_msg, 1);
+#endif
    }
 
   if(G_current_patch.osc2_on)
@@ -224,7 +244,10 @@ void LIB_SID_note_off(uint8_t v_id, uint8_t board_address)
     SID_msg.reg_data = G_current_patch.osc2_control_reg;
     SID_msg.reg_addr = SID_OSC2_CTRL;
     write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
-    write(G_QSID_tasks[(2 << 4) | v_id].input_pipe[1], &silencer_msg, 1);
+#ifdef USE_SILENCERS
+    if(use_silencer)
+     write(G_QSID_tasks[(2 << 4) | v_id].input_pipe[1], &silencer_msg, 1);
+#endif
    }
  
   if(G_current_patch.osc3_on)
@@ -232,7 +255,10 @@ void LIB_SID_note_off(uint8_t v_id, uint8_t board_address)
     SID_msg.reg_data = G_current_patch.osc3_control_reg;
     SID_msg.reg_addr = SID_OSC3_CTRL;
     write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
-    write(G_QSID_tasks[(3 << 4) | v_id].input_pipe[1], &silencer_msg, 1);
+#ifdef USE_SILENCERS
+    if(use_silencer)
+     write(G_QSID_tasks[(3 << 4) | v_id].input_pipe[1], &silencer_msg, 1);
+#endif
    }
 
  }

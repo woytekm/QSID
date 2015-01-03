@@ -1,3 +1,4 @@
+#include "QSID_config.h"
 #include "common.h"
 #include "defs.h"
 #include "QSID_live_settings.h"
@@ -53,6 +54,7 @@ void MIDI_IN_thread(void)
              {
               if(MIDI_is_partial_message(midi_message_buffer, rc))
                {
+                SYS_debug(DEBUG_HIGH,"MIDI_in_thread: partial message - reading more");
                 rcdelta += read(G_MIDI_fd, midi_message_buffer+rc, sizeof(midi_message_buffer) - rc );  
                 if(rcdelta == 0) continue;  /* second read is empty - seems like truncated message - discard it */
                 else if( (rc + rcdelta) >= MIDI_IN_BUFLEN) continue; /* next read will probably cause buffer overflow - discard */
@@ -69,7 +71,7 @@ void MIDI_IN_thread(void)
 
            bzero(midi_message_buffer, rc);
            last_message_incomplete = 1;
-           rc = 0;
+           rc = rcdelta = 0;
 
           } /* if(rc > 0)  */
 

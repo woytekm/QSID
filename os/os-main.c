@@ -50,14 +50,18 @@ void main(void)
  SYS_debug(DEBUG_LOW,"Starting SID remote control thread...");
  SYS_start_task(TASK_UDP_MIDI_IN, LIB_SID_remote_control, NULL, SCHED_RR, PRIO_NORMAL51);
 
+#ifdef USE_SILENCERS
+
  SYS_debug(DEBUG_LOW,"Starting oscillator silencers...");
 
  for(v_ctr = 1; v_ctr <= (G_inventory_voice_count); v_ctr++)
   for(o_ctr = 1; o_ctr <= 3; o_ctr++)
    {
     silencer_task_id = (o_ctr << 4) | v_ctr;
-    SYS_start_task(silencer_task_id, SYNTH_oscillator_silencer, (void *)&silencer_task_id, SCHED_RR, PRIO_HIGH86);
+    SYS_start_task(silencer_task_id, SYNTH_oscillator_silencer, (void *)&silencer_task_id, SCHED_RR, PRIO_VERYHIGH96);
    }
+
+#endif
 
  /* init patch settings before starting LFO's */
 

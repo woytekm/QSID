@@ -69,7 +69,7 @@ void SYNTH_note_on_fast(uint16_t midi_note, uint16_t attack_velocity)
 
  }
 
-void SYNTH_note_off(uint16_t midi_note)
+void SYNTH_note_off(uint16_t midi_note, uint8_t use_silencer)
  {
 
   uint8_t i;
@@ -86,7 +86,7 @@ void SYNTH_note_off(uint16_t midi_note)
       G_voice_inventory[i].playstart = 0;
 
       /* SID specific part */
-      LIB_SID_note_off(i, G_voice_inventory[i].address);
+      LIB_SID_note_off(i, G_voice_inventory[i].address, use_silencer);
       /* SID specific part end  */
 
       return;

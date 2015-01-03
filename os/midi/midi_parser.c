@@ -1,5 +1,7 @@
+#include "QSID_config.h"
 #include "common.h"
 #include "defs.h"
+#include "inventory.h"
 #include "QSID_live_settings.h"
 #include "midi.h"
 
@@ -15,7 +17,7 @@
  void MIDI_parse_one_MIDI_msg(unsigned char *midi_in_buffer, uint16_t at_offset, uint16_t buflen)
   {
 
-    uint8_t midi_channel, midi_msgtype;
+    uint8_t midi_channel, midi_msgtype, i, dup = 0;
     uint16_t next_message_offset, sysex_len;
 
     if(at_offset >= buflen)   /* end of buffer  */
@@ -42,16 +44,33 @@
 
       if(midi_in_buffer[at_offset+2] == 0)   /* attack velocity = 0, this is NOTE OFF  */
         {
-         SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: MIDI note on (off), CH%d, (%x, %x)", midi_channel, midi_in_buffer[at_offset+1], midi_in_buffer[at_offset+2]);
-         SYNTH_note_off(midi_in_buffer[at_offset+1]);
+         SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: MIDI note on (off), CH%d, (%X, %X)", midi_channel, midi_in_buffer[at_offset+1], midi_in_buffer[at_offset+2]);
+         SYNTH_note_off(midi_in_buffer[at_offset+1], 1);
          break;
         }
 
-      SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: MIDI note on, CH%d, (%x, %x)", midi_channel, midi_in_buffer[at_offset+1], midi_in_buffer[at_offset+2]);
-      if(midi_in_buffer[at_offset+1] < 95 ) 
+      SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: MIDI note on, CH%d, (%X, %X)", midi_channel, midi_in_buffer[at_offset+1], midi_in_buffer[at_offset+2]);
+
+#ifdef DISCARD_DUPLICATE_NOTES
+
+      for(i = 1; i <= G_inventory_voice_count; i++)
+       {
+        if(G_voice_inventory[i].note == midi_in_buffer[at_offset+1])
+         {
+          SYS_debug(DEBUG_NORMAL,"MIDI_parse_one_MIDI_msg: duplicate MIDI note %X - discarding", midi_in_buffer[at_offset+1]);
+          dup = 1;
+          break;
+         }
+       }
+
+      if(dup) break;
+
+#endif
+
+      if(midi_in_buffer[at_offset+1] < 95 )
        SYNTH_note_on_fast(midi_in_buffer[at_offset+1], midi_in_buffer[at_offset+2]);   /* (note, attack_velocity)  */
       else
-       SYS_debug(DEBUG_NORMAL,"MIDI_parse_one_MIDI_msg: invalid MIDI note value %d!",midi_in_buffer[at_offset+1]); 
+       SYS_debug(DEBUG_NORMAL,"MIDI_parse_one_MIDI_msg: invalid MIDI note value %X!",midi_in_buffer[at_offset+1]);
       break;
 
      case 0x80:  /* note off  */
@@ -60,8 +79,8 @@
       if(midi_channel != G_QSID_live_settings.MIDI_receive_channel)
        break;
 
-      SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: MIDI note off, CH%d, (%x)", midi_channel, midi_in_buffer[at_offset+1]);
-      SYNTH_note_off(midi_in_buffer[at_offset+1]);
+      SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: MIDI note off, CH%d, (%X)", midi_channel, midi_in_buffer[at_offset+1]);
+      SYNTH_note_off(midi_in_buffer[at_offset+1], 1);
       break;
 
      case 0xA0:  /* aftertouch */
