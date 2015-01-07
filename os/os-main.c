@@ -65,7 +65,7 @@ void main(void)
 
  SYNTH_setup_base_patch(&G_current_patch);
 
- if(LIB_validate_patch(&G_current_patch))
+ if(SYS_validate_patch(&G_current_patch))
   {
    for(v_ctr = 1; v_ctr <= G_inventory_voice_count; v_ctr++)
     LIB_apply_patch_to_SID(G_voice_inventory[v_ctr].address, &G_current_patch);

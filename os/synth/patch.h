@@ -118,10 +118,4 @@ typedef struct _patch_data_t {
 patch_data_t G_current_patch;             /* polyphonic, monotimbral mode, all voices assigned to one patch */
 patch_data_t G_current_multi_program[8];  /* multitimbral mode - multiple patches avaliable in one program  */
 
-/* patch banks (128 patches each) */
-
-patch_data_t G_patch_bank_A[128];
-patch_data_t G_patch_bank_B[128];
-
-
 /* patch.h end */

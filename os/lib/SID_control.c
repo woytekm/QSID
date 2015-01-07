@@ -18,33 +18,6 @@ uint16_t G_MIDI_to_SID_reg[95] = { 274, 291, 308, 325, 346, 366, 388, 411, 435, 
                          37203, 39415, 41759, 44242, 46873, 49660, 52613, 55741, 59056,
                          62657 };
 
-uint8_t LIB_validate_patch(patch_data_t *patch)
- {
-
-  if( (patch->osc1_pw > PW_RANGE) || ((patch->osc1_adsr_attack || patch->osc1_adsr_decay ||
-                                   patch->osc1_adsr_sustain || patch->osc1_adsr_release) > 15) )
-   return 0;
-
-  if( (patch->osc2_pw > PW_RANGE) || ((patch->osc2_adsr_attack || patch->osc2_adsr_decay ||
-                                   patch->osc2_adsr_sustain || patch->osc2_adsr_release) > 15) )
-   return 0;
-
-  if( (patch->osc3_pw > PW_RANGE) || ((patch->osc3_adsr_attack || patch->osc3_adsr_decay ||
-                                   patch->osc3_adsr_sustain || patch->osc3_adsr_release) > 15) )
-   return 0;
-
-  if( (patch->filter_cutoff > CUTOFF_RANGE) || (patch->filter_reso > 15))
-   return 0;
-
-  if((patch->filter_mode != FILTER_OFF) && (patch->filter_mode != FILTER_HIGHPASS) && (patch->filter_mode != FILTER_BANDPASS) &&
-     (patch->filter_mode != FILTER_LOWPASS))
-   return 0;
-
-  /* only basic checks - there should be a lot more here */
-  
-  return 1;
-
- }
 
 uint8_t LIB_apply_patch_to_SID(uint8_t board_address, patch_data_t *patch)
  {
