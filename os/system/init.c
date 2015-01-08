@@ -15,6 +15,7 @@
      G_inventory_i2c_voice = 0;
      G_inventory_i2c_aux = 0;
      G_playing_voices = 0;
+     G_voice_allocation_dir = 1;
      G_QSID_task_count = 0;
  
      G_QSID_live_settings.MIDI_receive_channel = 1;

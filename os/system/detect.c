@@ -37,7 +37,7 @@ uint8_t SYS_detect_voices(void)
          LIB_SID_via_mcp23017_reset(G_i2c_voice_bus, ioaddr);
          LIB_SID_via_mcp23017_write(G_i2c_voice_bus, ioaddr, SID_OSC3_FREQ_LO, 128); // fire up OSC3 to get some reading from 0x1B
 
-         for(loop = 0; loop <= 3; loop++)
+         for(loop = 0; loop <= 10; loop++)
           {
            SID_readin += LIB_SID_via_mcp23017_read(G_i2c_voice_bus, ioaddr, 0x1B); // this _should_ be more than zero
            usleep(1000); 
@@ -58,6 +58,7 @@ uint8_t SYS_detect_voices(void)
         }
          
        ioaddr++;
+       SID_readin = 0;
 
      }
 

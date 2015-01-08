@@ -8,6 +8,7 @@
 #include "QSID_config.h"
 #include "inventory.h"
 #include "midi.h"
+#include "patch.h"
 #include "SID_writer.h"
 #include "SID_control.h"
 #include "task.h"
@@ -47,9 +48,6 @@ void main(void)
  SYS_debug(DEBUG_LOW,"Starting SID writer thread...");
  SYS_start_task(TASK_SID_WRITER, LIB_SID_tx_thread, NULL, SCHED_RR, PRIO_VERYHIGH94);
 
- SYS_debug(DEBUG_LOW,"Starting SID remote control thread...");
- SYS_start_task(TASK_UDP_MIDI_IN, LIB_SID_remote_control, NULL, SCHED_RR, PRIO_NORMAL51);
-
 #ifdef USE_SILENCERS
 
  SYS_debug(DEBUG_LOW,"Starting oscillator silencers...");
@@ -65,8 +63,18 @@ void main(void)
 
  /* init patch settings before starting LFO's */
 
- for(v_ctr = 1; v_ctr <= G_inventory_voice_count; v_ctr++)
-  LIB_apply_demo_patch(G_voice_inventory[v_ctr].address);
+ SYNTH_setup_base_patch(&G_current_patch);
+
+ if(LIB_validate_patch(&G_current_patch))
+  {
+   for(v_ctr = 1; v_ctr <= G_inventory_voice_count; v_ctr++)
+    LIB_apply_patch_to_SID(G_voice_inventory[v_ctr].address, &G_current_patch);
+  }
+ else 
+  {
+   SYS_debug(DEBUG_LOW,"FATAL: base initial patch has invalid parameters!");
+   SYS_halt();
+  }
 
  /* start LFO tasks  */
 

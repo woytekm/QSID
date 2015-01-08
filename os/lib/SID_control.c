@@ -18,52 +18,112 @@ uint16_t G_MIDI_to_SID_reg[95] = { 274, 291, 308, 325, 346, 366, 388, 411, 435, 
                          37203, 39415, 41759, 44242, 46873, 49660, 52613, 55741, 59056,
                          62657 };
 
-
-
-void LIB_apply_demo_patch(uint8_t board_address)
+uint8_t LIB_validate_patch(patch_data_t *patch)
  {
 
-   SID_msg_t SID_msg;
+  if( (patch->osc1_pw > PW_RANGE) || ((patch->osc1_adsr_attack || patch->osc1_adsr_decay ||
+                                   patch->osc1_adsr_sustain || patch->osc1_adsr_release) > 15) )
+   return 0;
 
-   SID_msg.SID_addr = board_address;
+  if( (patch->osc2_pw > PW_RANGE) || ((patch->osc2_adsr_attack || patch->osc2_adsr_decay ||
+                                   patch->osc2_adsr_sustain || patch->osc2_adsr_release) > 15) )
+   return 0;
 
-   SID_msg.reg_addr = SID_OSC1_ATTACK; SID_msg.reg_data = 7;
-   if(write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t)) == -1)
-    SYS_debug(DEBUG_NORMAL,"LIB_apply_demo_patch: pipe write error: %d",errno);
+  if( (patch->osc3_pw > PW_RANGE) || ((patch->osc3_adsr_attack || patch->osc3_adsr_decay ||
+                                   patch->osc3_adsr_sustain || patch->osc3_adsr_release) > 15) )
+   return 0;
 
-   SID_msg.reg_addr = SID_OSC1_SUSTAIN; SID_msg.reg_data = 15;
-   write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+  if( (patch->filter_cutoff > CUTOFF_RANGE) || (patch->filter_reso > 15))
+   return 0;
 
-   SID_msg.reg_addr = SID_OSC2_ATTACK; SID_msg.reg_data = 7;
-   write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+  if((patch->filter_mode != FILTER_OFF) && (patch->filter_mode != FILTER_HIGHPASS) && (patch->filter_mode != FILTER_BANDPASS) &&
+     (patch->filter_mode != FILTER_LOWPASS))
+   return 0;
 
-   SID_msg.reg_addr = SID_OSC2_SUSTAIN; SID_msg.reg_data = 15;
-   write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
- 
-   SID_msg.reg_addr = SID_OSC3_ATTACK; SID_msg.reg_data = 7;
-   write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
-
-   SID_msg.reg_addr = SID_OSC3_SUSTAIN; SID_msg.reg_data = 15;
-   write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
-
-   SID_msg.reg_addr = SID_FLT_MODE_VOL; SID_msg.reg_data = 31;
-   write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+  /* only basic checks - there should be a lot more here */
   
-   G_current_patch.octave_transposition = -12;
-
-   G_current_patch.osc1_fine = 0;
-   G_current_patch.osc2_fine = 0;
-   G_current_patch.osc3_fine = 0;
-
-   G_current_patch.osc1_on = 1;
-   G_current_patch.osc2_on = 0;
-   G_current_patch.osc3_on = 0;
- 
-   G_current_patch.LFO1_rate = 100;  
-
-   G_current_patch.filter_cutoff = 800;
+  return 1;
 
  }
+
+uint8_t LIB_apply_patch_to_SID(uint8_t board_address, patch_data_t *patch)
+ {
+
+  SYS_debug(DEBUG_HIGH,"LIB_apply_patch_to_SID: applying patch \"%s\" to SID at %X",patch->patch_name, board_address); 
+
+  SID_msg_t SID_msg;
+  SID_msg.SID_addr = board_address;
+ 
+ 
+  SID_msg.reg_addr = SID_OSC1_PW_LO;
+  SID_msg.reg_data = patch->osc1_pw & 255;
+  write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+  SID_msg.reg_addr = SID_OSC1_PW_HI;
+  SID_msg.reg_data = patch->osc1_pw >> 8;
+  write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+  SID_msg.reg_addr = SID_OSC1_ATTACK;
+  SID_msg.reg_data = (patch->osc1_adsr_attack << 4) | patch->osc1_adsr_decay;
+  write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+  SID_msg.reg_addr = SID_OSC1_SUSTAIN;
+  SID_msg.reg_data = (patch->osc1_adsr_sustain << 4) | patch->osc1_adsr_release;
+  write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+
+  SID_msg.reg_addr = SID_OSC2_PW_LO;
+  SID_msg.reg_data = patch->osc2_pw & 255;
+  write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+  SID_msg.reg_addr = SID_OSC2_PW_HI;
+  SID_msg.reg_data = patch->osc2_pw >> 8;
+  write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+  SID_msg.reg_addr = SID_OSC2_ATTACK;
+  SID_msg.reg_data = (patch->osc2_adsr_attack << 4) | patch->osc2_adsr_decay;
+  write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+  SID_msg.reg_addr = SID_OSC2_SUSTAIN;
+  SID_msg.reg_data = (patch->osc2_adsr_sustain << 4) | patch->osc2_adsr_release;
+  write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+
+  SID_msg.reg_addr = SID_OSC3_PW_LO;
+  SID_msg.reg_data = patch->osc3_pw & 255; /* get lower byte */
+  write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+  SID_msg.reg_addr = SID_OSC3_PW_HI;
+  SID_msg.reg_data = patch->osc3_pw >> 8;  /* shift the rest */
+  write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+  SID_msg.reg_addr = SID_OSC3_ATTACK;
+  SID_msg.reg_data = (patch->osc3_adsr_attack << 4) | patch->osc3_adsr_decay;
+  write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+  SID_msg.reg_addr = SID_OSC3_SUSTAIN;
+  SID_msg.reg_data = (patch->osc3_adsr_sustain << 4) | patch->osc3_adsr_release;
+  write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t)); 
+
+  
+  SID_msg.reg_addr = SID_FLT_CUTOFF_LO;
+  SID_msg.reg_data = patch->filter_cutoff & 255;
+  write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+  SID_msg.reg_addr = SID_FLT_CUTOFF_HI;
+  SID_msg.reg_data = patch->filter_cutoff >> 3;
+  write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+  SID_msg.reg_addr = SID_FLT_RESO_ROUTE;
+  SID_msg.reg_data = (patch->filter_reso << 4) | patch->osc1_filter_on | patch->osc2_filter_on | patch->osc3_filter_on;
+  write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+  SID_msg.reg_addr = SID_FLT_MODE_VOL;
+  SID_msg.reg_data = patch->filter_mode | patch->volume;
+  write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
+
+ }
+
 
 /* detune is calculated in SID register values, and it's base unit translates roughly to 1/10 of adjacent note interval (10 cents)
  detune can be anything from -10 to 10, which means that maximal detune value should set oscillator to the adjacent note pitch (+/- 100 cents in 10 cent units)
@@ -106,24 +166,21 @@ void LIB_SID_note_on(uint8_t MIDI_note, uint8_t v_id, uint8_t board_address)
    pthread_kill(G_QSID_tasks[(3 << 4) | v_id].task_id, SIGALRM);
 
 #endif
+
    SID_OSC1_msg.SID_addr = SID_OSC2_msg.SID_addr = SID_OSC3_msg.SID_addr = board_address;
 
-   //SID_OSC1_msg.reg_data = 0;
-   //SID_OSC1_msg.reg_addr = SID_OSC1_SUSTAIN;
-   //write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_OSC1_msg, sizeof(SID_msg_t));
-   //SID_OSC1_msg.reg_data = (G_current_patch.osc1_adsr_sustain << 4) | G_current_patch.osc1_adsr_release;
+   /* turn off all oscillators using test bit */
+
+   //SID_OSC1_msg.reg_data = 8;
+   //SID_OSC1_msg.reg_addr = SID_OSC1_CTRL;
    //write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_OSC1_msg, sizeof(SID_msg_t));
 
-   //SID_OSC2_msg.reg_data = 0;
-   //SID_OSC2_msg.reg_addr = SID_OSC2_SUSTAIN;
-   //write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_OSC2_msg, sizeof(SID_msg_t));
-   //SID_OSC2_msg.reg_data = (G_current_patch.osc2_adsr_sustain << 4) | G_current_patch.osc2_adsr_release;
+   //SID_OSC2_msg.reg_data = 8;
+   //SID_OSC2_msg.reg_addr = SID_OSC2_CTRL;
    //write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_OSC2_msg, sizeof(SID_msg_t));
 
-   //SID_OSC3_msg.reg_data = 0;
-   //SID_OSC3_msg.reg_addr = SID_OSC3_SUSTAIN;
-   //write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_OSC3_msg, sizeof(SID_msg_t));
-   //SID_OSC3_msg.reg_data = (G_current_patch.osc3_adsr_sustain << 4) | G_current_patch.osc3_adsr_release;
+   //SID_OSC3_msg.reg_data = 8;
+   //SID_OSC3_msg.reg_addr = SID_OSC3_CTRL;
    //write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_OSC3_msg, sizeof(SID_msg_t));
 
    /* load pitch registers (+detune value from patch), and then trigger ADSR on all three oscillators at once */

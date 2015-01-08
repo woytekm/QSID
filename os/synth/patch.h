@@ -38,8 +38,12 @@
 #define VOLUME_RANGE 15
 
 typedef struct _patch_data_t {
+
+  char patch_name[12];
+
   uint8_t  osc1_on;
   int8_t   osc1_fine;
+  int8_t   osc1_transposition;
   uint16_t osc1_pw;
   uint8_t  osc1_wave;
   uint8_t  osc1_ringmod_on;
@@ -55,6 +59,7 @@ typedef struct _patch_data_t {
 
   uint8_t  osc2_on;
   int8_t   osc2_fine;
+  int8_t   osc2_transposition;
   uint16_t osc2_pw;
   uint8_t  osc2_wave;
   uint8_t  osc2_ringmod_on;
@@ -70,6 +75,7 @@ typedef struct _patch_data_t {
 
   uint8_t  osc3_on;
   int8_t   osc3_fine;
+  int8_t   osc3_transposition;
   uint16_t osc3_pw;
   uint8_t  osc3_wave;
   uint8_t  osc3_ringmod_on;
@@ -112,3 +118,10 @@ typedef struct _patch_data_t {
 patch_data_t G_current_patch;             /* polyphonic, monotimbral mode, all voices assigned to one patch */
 patch_data_t G_current_multi_program[8];  /* multitimbral mode - multiple patches avaliable in one program  */
 
+/* patch banks (128 patches each) */
+
+patch_data_t G_patch_bank_A[128];
+patch_data_t G_patch_bank_B[128];
+
+
+/* patch.h end */
