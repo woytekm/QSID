@@ -17,8 +17,8 @@ all:	$(MYLIBS) $(OSEXE)
 
 $(OSEXE):
 	$(CC) $(CFLAGS) os-main.c -c $(INCLUDES) 
-	$(CC) $(CFLAGS) -o $(OSEXE) os-main.o $(LDOPTS) $(MYLIBDIRS) $(SYSLIBS) $(SYSLIBDIRS) 
-
+	$(CC) $(CFLAGS) -static -o $(OSEXE) os-main.o $(LDOPTS) $(MYLIBDIRS) $(SYSLIBS) $(SYSLIBDIRS)
+	
 
 libqsid-i2c.a:
 	cd lib; $(MAKE) libqsid-i2c

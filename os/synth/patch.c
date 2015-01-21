@@ -60,6 +60,11 @@ void SYNTH_setup_base_patch(patch_data_t *patch)
   patch->filter_mode = FILTER_OFF;
   patch->filter_ext = 0;
 
+  patch->filter_adsr_attack = 2;
+  patch->filter_adsr_decay = 0;
+  patch->filter_adsr_sustain = 0;
+  patch->filter_adsr_release = 0;
+
   patch->LFO1_state = 0;
   patch->LFO1_rate = 1;
   patch->LFO1_depth = 0;

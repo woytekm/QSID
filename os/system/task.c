@@ -1,6 +1,7 @@
 #include "common.h"
 #include "defs.h"
 #include "task.h"
+#include "QSID_config.h"
 
 /*
  thread scheduling policies: SCHED_FIFO, SCHED_RR, SCHED_BATCH, SCHED_IDLE, SCHED_OTHER
@@ -11,12 +12,17 @@
 pthread_t SYS_start_task(uint8_t task_slot_id, void (*task_function)(), void *task_args, int scheduling_policy, int priority)
  {
 
+   uint8_t setstack_err=0;
    pthread_t new_task;
    pthread_attr_t new_task_attr;
    struct sched_param new_task_sched_param;
 
    pthread_attr_init(&new_task_attr);
    pthread_attr_setdetachstate(&new_task_attr, PTHREAD_CREATE_DETACHED);
+
+   if( (setstack_err = pthread_attr_setstacksize(&new_task_attr, QSID_DEFAULT_THREAD_STACK_SIZE)) != 0)
+    SYS_debug(DEBUG_NORMAL,"SYS_start_task: warning: cannot set thread stack size to %dk (%d)",
+              QSID_DEFAULT_THREAD_STACK_SIZE,setstack_err);
 
    if(pipe(G_QSID_tasks[task_slot_id].input_pipe) == -1)
      SYS_debug(DEBUG_NORMAL,"SYS_start_task: warning: cannot create create input pipe for task %x",task_function);

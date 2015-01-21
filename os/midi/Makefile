@@ -6,12 +6,13 @@ all:
 	$(CC) $(CFLAGS) midi_init.c -c  $(INCLUDES)
 	$(CC) $(CFLAGS) midi_in.c -c  $(INCLUDES)
 	$(CC) $(CFLAGS) midi_parser.c -c  $(INCLUDES)
+	$(CC) $(CFLAGS) midi_CC.c -c  $(INCLUDES)
 	$(CC) $(CFLAGS) midi_misc.c -c  $(INCLUDES)
 	$(CC) $(CFLAGS) midi_udp_in.c -c  $(INCLUDES)
 	$(CC) $(CFLAGS) sysex.c -c $(INCLUDES)
 	$(CC) $(CFLAGS) sysex_handlers.c -c $(INCLUDES)
 	$(CC) $(CFLAGS) sysex_codec.c -c $(INCLUDES)
-	ar rcs libqsid-MIDI.a midi_init.o midi_in.o midi_parser.o midi_misc.o midi_udp_in.o sysex.o sysex_handlers.o sysex_codec.o
+	ar rcs libqsid-MIDI.a midi_init.o midi_in.o midi_parser.o midi_CC.o midi_misc.o midi_udp_in.o sysex.o sysex_handlers.o sysex_codec.o
 
 clean:
 	rm -f *.o *.a

@@ -22,6 +22,8 @@
 
 #endif
 
+#define QSID_DEFAULT_THREAD_STACK_SIZE 1024000
+
 #define QSID_DEBUG 1
 #define QSID_DEBUG_LEVEL 3
 

@@ -139,7 +139,7 @@ void SYNTH_LFO1(void)
          apply_value = LFO_ranges[current_destination];
 
         for(i = 1; i <= G_inventory_voice_count; i++)
-          LIB_apply_LFO_CUTOFF(G_voice_inventory[i].address, apply_value);
+          LIB_SID_modulate_cutoff(G_voice_inventory[i].address, apply_value);
         break;
 
         case LFO_ROUTING_PW_1:
@@ -150,7 +150,7 @@ void SYNTH_LFO1(void)
          apply_value = LFO_ranges[current_destination];
 
         for(i = 1; i <= G_inventory_voice_count; i++)
-          LIB_apply_LFO_PW1(G_voice_inventory[i].address, apply_value);
+          LIB_SID_modulate_PW1(G_voice_inventory[i].address, apply_value);
         break;
 
         case LFO_ROUTING_PW_2:
@@ -161,7 +161,7 @@ void SYNTH_LFO1(void)
          apply_value = LFO_ranges[current_destination];
 
         for(i = 1; i <= G_inventory_voice_count; i++)
-          LIB_apply_LFO_PW2(G_voice_inventory[i].address ,apply_value);
+          LIB_SID_modulate_PW2(G_voice_inventory[i].address ,apply_value);
         break;
 
         case LFO_ROUTING_PW_3:
@@ -172,7 +172,7 @@ void SYNTH_LFO1(void)
          apply_value = LFO_ranges[current_destination];
 
         for(i = 1; i <= G_inventory_voice_count; i++)
-          LIB_apply_LFO_PW3(G_voice_inventory[i].address ,apply_value);
+          LIB_SID_modulate_PW3(G_voice_inventory[i].address ,apply_value);
         break;
 
         case LFO_ROUTING_PW_ALL:
@@ -194,9 +194,9 @@ void SYNTH_LFO1(void)
 
         for(i = 1; i <= G_inventory_voice_count; i++)
          {
-          LIB_apply_LFO_PW1(G_voice_inventory[i].address ,apply_value_osc1);
-          LIB_apply_LFO_PW2(G_voice_inventory[i].address ,apply_value_osc2);
-          LIB_apply_LFO_PW3(G_voice_inventory[i].address ,apply_value_osc3);
+          LIB_SID_modulate_PW1(G_voice_inventory[i].address ,apply_value_osc1);
+          LIB_SID_modulate_PW2(G_voice_inventory[i].address ,apply_value_osc2);
+          LIB_SID_modulate_PW3(G_voice_inventory[i].address ,apply_value_osc3);
          }
         break;
      }

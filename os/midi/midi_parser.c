@@ -3,6 +3,8 @@
 #include "defs.h"
 #include "inventory.h"
 #include "QSID_live_settings.h"
+#include "patch.h"
+#include "patch_mgmt.h"
 #include "midi.h"
 
 /*
@@ -45,7 +47,7 @@
       if(midi_in_buffer[at_offset+2] == 0)   /* attack velocity = 0, this is NOTE OFF  */
         {
          SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: MIDI note on (off), CH%d, (%X, %X)", midi_channel, midi_in_buffer[at_offset+1], midi_in_buffer[at_offset+2]);
-         SYNTH_note_off(midi_in_buffer[at_offset+1], 1);
+         SYNTH_note_off(midi_in_buffer[at_offset+1], 0);
          break;
         }
 
@@ -80,7 +82,7 @@
        break;
 
       SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: MIDI note off, CH%d, (%X)", midi_channel, midi_in_buffer[at_offset+1]);
-      SYNTH_note_off(midi_in_buffer[at_offset+1], 1);
+      SYNTH_note_off(midi_in_buffer[at_offset+1], 0);
       break;
 
      case 0xA0:  /* aftertouch */
@@ -93,7 +95,8 @@
       if(midi_channel != G_QSID_live_settings.MIDI_receive_channel)
        break;
       else
-       SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: control change message (not supported yet)");
+       SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: control change message");
+       MIDI_handle_CC(midi_in_buffer[at_offset+1], midi_in_buffer[at_offset+2]);
       break;
 
      case 0xC0: /* program change */
@@ -101,7 +104,14 @@
       if(midi_channel != G_QSID_live_settings.MIDI_receive_channel)
        break;
       else
-       SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: program change message (not supported yet)");
+       SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: program change message (%d)",midi_in_buffer[at_offset+1]);
+       if(midi_in_buffer[at_offset+1] < QSID_PATCH_BANK_SIZE)
+        {
+         G_QSID_live_settings.current_patch_idx = midi_in_buffer[at_offset+1];
+         SYS_load_patch_from_bank(G_QSID_live_settings.current_bank_idx, G_QSID_live_settings.current_patch_idx);
+        }
+       else
+        SYS_debug(DEBUG_HIGH,"MIDI_parse_one_MIDI_msg: invalid program number in program change (%d)",midi_in_buffer[at_offset+1]);
       break;
 
      case 0xD0: /* aftertouch */

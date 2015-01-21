@@ -36,33 +36,4 @@
 #define SID_OSC3 27
 #define SID_ENV3 28
 
-/* virtual SID registers needed for patch manipulation rather than direct chip manipulation  */
-
-#define SID_OSC1_STATE 32
-#define SID_OSC1_DETUNE 33
-
-#define SID_OSC2_STATE 64
-#define SID_OSC2_DETUNE 65
-
-#define SID_OSC3_STATE 96
-#define SID_OSC3_DETUNE 97
-
-#define QSID_OCTAVE_TRANSPOSITION 128
-
-#define QSID_LFO1_RATE 130
-#define QSID_LFO1_SHAPE 131
-#define QSID_LFO1_DEPTH 132
-#define QSID_LFO1_ROUTE 133
-
-#define QSID_LFO2_RATE 140
-#define QSID_LFO2_SHAPE 141
-#define QSID_LFO2_DEPTH 142
-#define QSID_LFO2_ROUTE 143
-
-#define QSID_FILTER_ADSR_ATTACK 150
-#define QSID_FILTER_ADSR_DECAY 152
-#define QSID_FILTER_ADSR_SUSTAIN 153
-#define QSID_FILTER_ADSR_RELEASE 154
-
-
 

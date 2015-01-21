@@ -19,12 +19,19 @@
      G_QSID_task_count = 0;
  
      G_QSID_live_settings.MIDI_receive_channel = 1;
+     G_QSID_live_settings.current_bank_idx = 0;
+     G_QSID_live_settings.current_patch_idx = 0;
 
      SYS_debug(DEBUG_LOW,"SYS_init: registering sysex handlers...");
 
      MIDI_register_sysex_handlers();
 
      MIDI_init_MIDI_msg_lenghts();
+   
+     SYNTH_init_ADSR_event_handlers();
+
+     SYS_debug(DEBUG_LOW,"SYS_init: allocating patch banks...");
+     SYS_allocate_patch_banks();
 
      SYS_debug(DEBUG_LOW,"SYS_init: I2C init...");
 

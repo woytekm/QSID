@@ -5,6 +5,7 @@
 #include "common.h"
 #include "defs.h"
 
+#include "QSID_live_settings.h"
 #include "QSID_config.h"
 #include "inventory.h"
 #include "midi.h"
@@ -13,6 +14,7 @@
 #include "SID_control.h"
 #include "task.h"
 #include "lfo.h"
+#include "adsr.h"
 #include "silencer.h"
 
 
@@ -23,7 +25,7 @@ void main(void)
   uint8_t v_ctr, o_ctr;
   uint8_t silencer_task_id;
 
-  SYS_debug(DEBUG_LOW,"Q-SID OS version %d.%d",QSID_OS_VERSION_MAJOR, QSID_OS_VERSION_MINOR);
+  SYS_debug(DEBUG_LOW,"Q-SID OS version %d.%d (main() PID: %d)",QSID_OS_VERSION_MAJOR, QSID_OS_VERSION_MINOR, getpid());
   
   SYS_init();
 
@@ -46,7 +48,7 @@ void main(void)
  SYS_start_task(TASK_MIDI_IN, MIDI_UDP_input, NULL, SCHED_RR, PRIO_NORMAL50);
 
  SYS_debug(DEBUG_LOW,"Starting SID writer thread...");
- SYS_start_task(TASK_SID_WRITER, LIB_SID_tx_thread, NULL, SCHED_RR, PRIO_VERYHIGH94);
+ SYS_start_task(TASK_SID_WRITER, LIB_SID_tx_thread, NULL, SCHED_RR, PRIO_VERYHIGH97);
 
 #ifdef USE_SILENCERS
 
@@ -61,20 +63,17 @@ void main(void)
 
 #endif
 
+ SYS_debug(DEBUG_LOW,"Starting filter ADSR tasks...");
+
+ for(v_ctr = 1; v_ctr <= (G_inventory_voice_count); v_ctr++)
+  SYS_start_task(TASK_FILTER_ADSR_V1+(v_ctr-1), SYNTH_filter_ADSR, (void *)&v_ctr, SCHED_RR, PRIO_VERYHIGH93);
+  
+
  /* init patch settings before starting LFO's */
 
- SYNTH_setup_base_patch(&G_current_patch);
+ SYS_load_all_patch_banks();
 
- if(SYS_validate_patch(&G_current_patch))
-  {
-   for(v_ctr = 1; v_ctr <= G_inventory_voice_count; v_ctr++)
-    LIB_apply_patch_to_SID(G_voice_inventory[v_ctr].address, &G_current_patch);
-  }
- else 
-  {
-   SYS_debug(DEBUG_LOW,"FATAL: base initial patch has invalid parameters!");
-   SYS_halt();
-  }
+ SYS_load_patch_from_bank(G_QSID_live_settings.current_bank_idx, G_QSID_live_settings.current_patch_idx);
 
  /* start LFO tasks  */
 

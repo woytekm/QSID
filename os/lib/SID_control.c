@@ -128,6 +128,7 @@ void LIB_SID_note_on(uint8_t MIDI_note, uint8_t v_id, uint8_t board_address)
  {
 
    int8_t detune_osc1, detune_osc2, detune_osc3;
+   uint8_t adsr_start_msg = 1;
 
    SID_msg_t SID_OSC1_msg, SID_OSC2_msg, SID_OSC3_msg;
  
@@ -177,6 +178,8 @@ void LIB_SID_note_on(uint8_t MIDI_note, uint8_t v_id, uint8_t board_address)
    SID_OSC1_msg.reg_addr = SID_OSC1_CTRL;
    SID_OSC2_msg.reg_addr = SID_OSC2_CTRL;
    SID_OSC3_msg.reg_addr = SID_OSC3_CTRL;
+
+   write(G_QSID_tasks[TASK_FILTER_ADSR_V1+(v_id-1)].input_pipe[1], &adsr_start_msg, 1);
    
    if(G_current_patch.osc1_on) 
     write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_OSC1_msg, sizeof(SID_msg_t));
@@ -248,15 +251,20 @@ void LIB_SID_OSC3_note_on(uint16_t SID_osc_pitch, uint8_t v_id, uint8_t board_ad
  }
 
 
-void LIB_SID_note_off(uint8_t v_id, uint8_t board_address, uint8_t use_silencer)
+void LIB_SID_note_off(uint8_t v_id, uint8_t board_address, uint8_t kill_note)
  {
 
-  /* clear GATE bit on active oscillators, notify silencer threads */
+  /* clear GATE bit on active oscillators, notify silencer threads, notify filter ADSR */
   
   SID_msg_t SID_msg;
   uint8_t silencer_msg = 1;
 
   SID_msg.SID_addr = board_address;
+
+  if(kill_note)
+   pthread_kill(G_QSID_tasks[TASK_FILTER_ADSR_V1+(v_id-1)].task_id, SIGUSR1);
+  else
+   pthread_kill(G_QSID_tasks[TASK_FILTER_ADSR_V1+(v_id-1)].task_id, SIGUSR2);
 
   if(G_current_patch.osc1_on)
    {
@@ -264,7 +272,7 @@ void LIB_SID_note_off(uint8_t v_id, uint8_t board_address, uint8_t use_silencer)
     SID_msg.reg_addr = SID_OSC1_CTRL;
     write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t)); 
 #ifdef USE_SILENCERS
-    if(use_silencer)
+    if(!kill_note)
      write(G_QSID_tasks[(1 << 4) | v_id].input_pipe[1], &silencer_msg, 1);
 #endif
    }
@@ -275,7 +283,7 @@ void LIB_SID_note_off(uint8_t v_id, uint8_t board_address, uint8_t use_silencer)
     SID_msg.reg_addr = SID_OSC2_CTRL;
     write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
 #ifdef USE_SILENCERS
-    if(use_silencer)
+    if(!kill_note)
      write(G_QSID_tasks[(2 << 4) | v_id].input_pipe[1], &silencer_msg, 1);
 #endif
    }
@@ -286,7 +294,7 @@ void LIB_SID_note_off(uint8_t v_id, uint8_t board_address, uint8_t use_silencer)
     SID_msg.reg_addr = SID_OSC3_CTRL;
     write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
 #ifdef USE_SILENCERS
-    if(use_silencer)
+    if(!kill_note)
      write(G_QSID_tasks[(3 << 4) | v_id].input_pipe[1], &silencer_msg, 1);
 #endif
    }
@@ -294,7 +302,7 @@ void LIB_SID_note_off(uint8_t v_id, uint8_t board_address, uint8_t use_silencer)
  }
 
 
-void LIB_apply_LFO_CUTOFF(uint8_t board_address, uint16_t apply_value)
+void LIB_SID_modulate_cutoff(uint8_t board_address, uint16_t apply_value)
  {
   SID_msg_t SID_msg;
   uint8_t cutoff_lo, cutoff_hi;
@@ -315,7 +323,7 @@ void LIB_apply_LFO_CUTOFF(uint8_t board_address, uint16_t apply_value)
   write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
  }
 
-void LIB_apply_LFO_PW1(uint8_t board_address, uint16_t apply_value)
+void LIB_SID_modulate_PW1(uint8_t board_address, uint16_t apply_value)
  {
    SID_msg_t SID_msg;
    uint8_t pw_lo, pw_hi;
@@ -336,7 +344,7 @@ void LIB_apply_LFO_PW1(uint8_t board_address, uint16_t apply_value)
  }
 
 
-void LIB_apply_LFO_PW2(uint8_t board_address, uint16_t apply_value)
+void LIB_SID_modulate_PW2(uint8_t board_address, uint16_t apply_value)
  {
    SID_msg_t SID_msg;
    uint8_t pw_lo, pw_hi;
@@ -356,7 +364,7 @@ void LIB_apply_LFO_PW2(uint8_t board_address, uint16_t apply_value)
    write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
  }
 
-void LIB_apply_LFO_PW3(uint8_t board_address, uint16_t apply_value)
+void LIB_SID_modulate_PW3(uint8_t board_address, uint16_t apply_value)
  {
    SID_msg_t SID_msg;
    uint8_t pw_lo, pw_hi;
@@ -376,10 +384,10 @@ void LIB_apply_LFO_PW3(uint8_t board_address, uint16_t apply_value)
    write(G_QSID_tasks[TASK_SID_WRITER].input_pipe[1], &SID_msg, sizeof(SID_msg_t));
  }
 
-void LIB_apply_LFO_PW_ALL(uint8_t board_address, uint16_t apply_value)
+void LIB_SID_modulate_PW_ALL(uint8_t board_address, uint16_t apply_value)
  {
-  LIB_apply_LFO_PW1(board_address, apply_value);
-  LIB_apply_LFO_PW2(board_address, apply_value);
-  LIB_apply_LFO_PW3(board_address, apply_value);
+  LIB_SID_modulate_PW1(board_address, apply_value);
+  LIB_SID_modulate_PW2(board_address, apply_value);
+  LIB_SID_modulate_PW3(board_address, apply_value);
  }
 

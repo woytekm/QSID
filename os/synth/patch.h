@@ -94,6 +94,12 @@ typedef struct _patch_data_t {
   uint8_t  filter_mode;
   uint8_t  filter_ext;
 
+  uint8_t filter_adsr_attack;   /* 0 - 15 */
+  uint8_t filter_adsr_decay;    /* 0 - 15 */
+  uint8_t filter_adsr_sustain;  /* 0 - 15 */
+  uint8_t filter_adsr_release;  /* 0 - 15 */
+
+  uint8_t filter_adsr_amount;
 
   uint8_t  LFO1_state;       /* 0 - off, 1 - on */
   uint8_t  LFO1_rate;        /* 0 - 100 */

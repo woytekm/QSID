@@ -1,12 +1,16 @@
-#define QSID_PATCH_BANK_A 1
-#define QSID_PATCH_BANK_B 2
+#define QSID_PATCH_BANK_A 0
+#define QSID_PATCH_BANK_B 1
 
-#define PATCH_BANK_PATH "/usr/local/var/QSID/"
-#define PATCH_BANK_FILENAME "QSID_patch_bank"
+#define QSID_PATCH_BANK_COUNT 2
+
+#define PATCH_BANK_PATH "/QSID/"
+#define PATCH_BANK_FILENAME "QSID_patch_bank_"
+#define PATCH_BANK_NAMELEN 32
 
 #define QSID_PATCH_BANK_SIZE 128
 
-patch_data_t G_patch_bank_A[QSID_PATCH_BANK_SIZE];
-patch_data_t G_patch_bank_B[QSID_PATCH_BANK_SIZE];
+patch_data_t *G_patch_banks[QSID_PATCH_BANK_COUNT][QSID_PATCH_BANK_SIZE];
 
+#define EPBCORRUPT -2
+#define EPBBADID -3
 
